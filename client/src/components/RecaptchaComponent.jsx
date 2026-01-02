@@ -3,8 +3,9 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 const SITE_KEY = "6LdGLj0sAAAAAApMewW50XzHEh5NNNw6WAyoFbRy"//process.env.REACT_APP_RECAPTCHA_SITE_KEY; // set your key in .env
 
-function RecaptchaComponent({ onVerify,token,setToken }) {
+function RecaptchaComponent({ onVerify,token,setToken,key }) {
   const recaptchaRef = useRef(null);
+  console.log("RECAPTCHA SITE KEY:", key);
 
   const handleChange = (value) => {
     // value is the reCAPTCHA token
