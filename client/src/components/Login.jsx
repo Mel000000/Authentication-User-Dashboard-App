@@ -1,10 +1,10 @@
-import React, { useState } from 'react';    
+import { useState } from 'react';    
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import RecaptchaComponent from './RecaptchaComponent.jsx';
 
-function BasicExample() {
+function Login() {
     const [token, setToken] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -31,7 +31,7 @@ function BasicExample() {
                 <Form.Control type="password" placeholder="Password" />
             </Form.Group>
             <Form.Group className="mb-3" controlId="formBasicCheckbox">
-                <RecaptchaComponent token={token} setToken={setToken}/>
+                <RecaptchaComponent token={token} setToken={setToken} key={import.meta.env.RECAPTCHA_SITE_KEY }/>
             </Form.Group>
             <Button variant="primary" type="submit" disabled={validForm() ? false : true}>
                 Submit
@@ -42,4 +42,4 @@ function BasicExample() {
   );
 }
 
-export default BasicExample;
+export default Login;
