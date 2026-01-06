@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function SignupMap({ apiKey: propApiKey, mapId }) {
+export default function SignupMap({ apiKey: propApiKey, mapId, x, y, zoom}) {
   const mapRef = useRef(null);
   const [status, setStatus] = useState("idle");
 
@@ -62,20 +62,19 @@ export default function SignupMap({ apiKey: propApiKey, mapId }) {
 
     try {
       // configure the web component after the Maps API is available
-      mapRef.current.center = { lat: 20, lng: 0 };
-      mapRef.current.zoom = 1;
+      mapRef.current.center = { lat: x, lng: y };
+      mapRef.current.zoom = zoom;
       if (mapId) mapRef.current["map-id"] = mapId;
       console.log("Configured gmp-map", mapRef.current);
     } catch (e) {
       console.error("Error configuring gmp-map:", e);
     }
-  }, [status, mapId]);
+  }, [status, mapId, x, y, zoom]);
 
   return (
     <>
       <div style={{ marginBottom: 6 }}>
         {status === "loading" && <small>Loading map…</small>}
-        {status === "loaded" && <small>Map ready</small>}
         {status === "no-key" && <small style={{ color: "red" }}>No Google Maps API key</small>}
         {status === "error" && <small style={{ color: "red" }}>Map failed to load — check console</small>}
       </div>
