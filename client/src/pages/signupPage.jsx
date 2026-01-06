@@ -6,7 +6,7 @@ import Signup from "../components/Signup"
 export default function SignupPage() {
     return (
         <>
-         <Container 
+        <Container 
         className="d-flex flex-column justify-content-center align-items-center" 
         style={{ height: '100vh' }} >
             <Row><Col><Signup /></Col></Row>

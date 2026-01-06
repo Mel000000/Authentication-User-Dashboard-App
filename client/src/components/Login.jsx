@@ -14,7 +14,7 @@ function Login() {
     }
 
   return (
-    <Card style={{ width: '22rem' }}>
+    <Card style={{ width: '22rem', margin: '2rem auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
       <Card.Body>
         <Card.Title>Already have an account?</Card.Title>
         <Form>
