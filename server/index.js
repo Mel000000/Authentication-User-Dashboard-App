@@ -1,8 +1,10 @@
 const express = require('express');
 const path = require('path');
 const cors = require("cors"); // allows requests from frontend (middleware)
+require("dotenv").config(); // load .env
 
 const countryRouter = require('./routes/country');
+const codeRequestRouter = require('./routes/codeRequest');
 
 const app = express()
 
@@ -17,6 +19,7 @@ app.use(express.static(path.join(__dirname, '../client/dist'))); // serve fronte
 
 // Routes that are server API endpoints
 app.use("/api/country", countryRouter);
+app.use("/api/codeRequest", codeRequestRouter);
 
 // For all other routes, serve React's index.html (enables client-side routing)
 app.use((req, res) => {
