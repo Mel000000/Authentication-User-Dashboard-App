@@ -1,7 +1,9 @@
 import React, { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
-const SITE_KEY = "6LdGLj0sAAAAAApMewW50XzHEh5NNNw6WAyoFbRy"//process.env.REACT_APP_RECAPTCHA_SITE_KEY; // set your key in .env
+const SITE_KEY = import.meta.env.REACT_APP_RECAPTCHA_SITE_KEY; // set your key in .env
+
+console.log("Loaded RECAPTCHA SITE KEY:", SITE_KEY);
 
 function RecaptchaComponent({ onVerify,token,setToken,key }) {
   const recaptchaRef = useRef(null);
