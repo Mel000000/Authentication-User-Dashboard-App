@@ -1,19 +1,31 @@
 import { useState } from 'react';    
 import { Container, Row, Col,Card,Form,Button } from 'react-bootstrap';
 import '../../design/codeStyle.css';
-import { sendMail } from '../api/reqCodeApi';
+import { sendMail, verifyCode } from '../api/reqCodeApi';
 
 
 function ReqResetCard() {
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const validCode = () => { 
         return code ? true && code.length ===6 : false ;
     }
 
     const validEmail = () => { 
-        return email ? true : false;
+        return email ? true : false; // later add more validation -> compare with database
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try{
+            await verifyCode(email,code);
+            alert("Code verified!"); // proceed to reset password step
+        }
+        catch{
+            alert("Invalid code");
+        }
     }
 
   return (
@@ -51,25 +63,26 @@ function ReqResetCard() {
             href="#"
             onClick={async (e) => {
                 e.preventDefault();
-
                 if (!validEmail()) {
                 alert("Invalid email");
                 return;
                 }
-
                 try {
+                setLoading(true);
                 await sendMail(email);
                 alert("Code sent!");
                 } catch {
                 alert("Failed to send code");
+                } finally {
+                setLoading(false);
                 }
             }}
             >
-                Send Code
+            {loading ? "Sending..." : "Send Code"}
             </a>
             </Col>
             <Col className="d-flex justify-content-end">
-            <Button variant="primary" type="submit" disabled={!validCode()}>
+            <Button variant="primary" type="submit" disabled={!validCode()} onClick={(e)=>handleSubmit(e)}>
                 Submit
             </Button>
             </Col>
