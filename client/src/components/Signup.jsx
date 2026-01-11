@@ -9,6 +9,7 @@ import ProfileImageUploader from './ProfileImageUploader';
 import AccountFields from './AccountFields';
 import CountrySelector from './CountrySelector';
 import { getCountryLoc } from '../api/countryApi';
+import {createUser} from '../api/userApi';
 
 
 
@@ -60,11 +61,24 @@ function Signup() {
         }   
     };
 
+    const onSubmit = async () => {
+        try {
+            const userData ={ email, password, username, country}; // prrofileImage needs to be saved in cloudinary and then saved a url in the database
+            await createUser(userData);
+            alert("User created successfully!");
+        } catch (error) {
+            console.error("Error creating user:", error);
+        }
+    }
+
     return(
     <Card style={{ width: '60rem' , margin: '2rem auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)'}}>
         <CardTitle className='mb-3' style={{ paddingLeft: '2rem', paddingTop: '1rem' }}>Create New Account</CardTitle>
       <Card.Body>
-        <Form>
+        <Form onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+        }}>
             <Container>
                 <Row>
                     <Col md={6}>
