@@ -1,10 +1,17 @@
 const express = require('express');
 const path = require('path');
+const mongoose = require("mongoose"); // MongoDB object modeling tool
 const cors = require("cors"); // allows requests from frontend (middleware)
-require("dotenv").config(); // load .env
-
 const countryRouter = require('./routes/country');
 const codeRequestRouter = require('./routes/codeRequest');
+const userRouter = require('./routes/user');
+require("dotenv").config(); // load .env
+
+const dbURL = "mongodb://localhost:27017/Authentication-User-Dashboard-App";
+mongoose.connect(dbURL)
+  .then(()=> console.log("MongoDB connected"))
+  .catch((err) => console.error(err))
+
 
 const app = express()
 
@@ -37,6 +44,7 @@ app.use(express.static(path.join(__dirname, '../client/dist'))); // serve fronte
 // Routes that are server API endpoints
 app.use("/api/country", countryRouter);
 app.use("/api/codeRequest", codeRequestRouter);
+app.use("/api/user", userRouter);
 
 // For all other routes, serve React's index.html (enables client-side routing)
 app.use((req, res) => {
