@@ -58,8 +58,8 @@ Authentication-User-Dashboard-App
 
 ## 🛠️ Future Improvements
 
--JWT authentication
--Role-based access control
--Profile image uploads
--OAuth (Google, GitHub)
--Email templates & expiration handling
+- JWT authentication
+- Role-based access control
+- Profile image uploads
+- OAuth (Google, GitHub)
+- Email templates & expiration handling
