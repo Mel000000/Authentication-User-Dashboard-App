@@ -20,19 +20,26 @@ The project supports user registration, email verification, secure password hand
 
 ## 📁 Project Structure
 
-Authentication-User-Dashboard-App
-├── client/ # React frontend
-├── server/ # Express backend
-│ ├── controllers/ # Business logic (email, auth, etc.)
-│ ├── models/ # Mongoose schemas
-│ ├── routes/ # API routes
-│ ├── utils/ # Helpers & utilities
-│ ├── seedUsers.js # Database seeding script
-│ └── index.js # Server entry point
-├── .env
+```text
+Authentication-User-Dashboard-App/
+│
+├── models/
+│   ├── user.js
+│   └── userZSchema.js
+│
+├── routes/
+│   ├── auth.js
+│   └── email.js
+│
+├── controllers/
+│   └── emailSender.js
+│
+├── seedUsers.js
+├── index.js
 ├── package.json
+├── .env
 └── README.md
-
+```
 ---
 
 ## 🧠 Tech Stack
