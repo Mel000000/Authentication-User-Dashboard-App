@@ -3,7 +3,6 @@ const axios = require("axios");
 const router = express.Router();
 
 // Return a simple array of country name strings. Place this route before ":value"
-// so "/all" isn't captured by the dynamic route.
 router.get("/all", async (req, res) => {
     try{
         const apiEndpointRes = await axios.get("https://restcountries.com/v3.1/all?fields=name");
@@ -14,6 +13,7 @@ router.get("/all", async (req, res) => {
     }
 });
 
+// Return latitude and longitude for a given country name
 router.get("/:value", async (req, res) => {
     try{
         const apiEndpointRes = await axios.get("https://restcountries.com/v3.1/name/" + req.params.value);
