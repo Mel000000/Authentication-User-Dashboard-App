@@ -1,26 +1,22 @@
 const nodemailer = require("nodemailer");
+require("dotenv").config(); // load .env
 
-// Create a transporter using Ethereal test credentials.
-// For production, replace with your actual SMTP server details.
+// Create reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", // Example SMTP server (for Gmail)
-  port: 587,
-  secure: false, // Use true for port 465, false for port 587
+  service: "gmail",
   auth: {
-    user: "melina.reisinger07@gmail.com",
-    pass: "melina4emily",
+    user: `${process.env.EMAIL_USER}`,
+    pass: `${process.env.EMAIL_PASS}`,
   },
 });
 
-// Send an email using async/await
-module.exports.sendMail = async () => {
-  const info = await transporter.sendMail({
-    from: '"Melina Reisinger" <melina.reisinger07@gmail.com>', // sender address
-    to: "xavierlachs@gmail.com, xavierlachs@gmail.com", // list of receivers
-    subject: "Email sending worked ✔",
-    text: "yes work", // Plain-text version of the message
-    html: "<b>yes work</b>", // HTML version of the message
+// Function to send email
+module.exports.sendMail = async (email,code) => {
+  return transporter.sendMail({
+    from: `"Company" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Your verification code",
+    text: `Your verification code is ${code}`,
+    html: `<p>Your verification code is <b>${code}</b></p>`,
   });
-
-  console.log("Message sent:", info.messageId);
 };

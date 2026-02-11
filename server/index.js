@@ -7,7 +7,7 @@ const codeRequestRouter = require('./routes/codeRequest');
 const userRouter = require('./routes/user');
 require("dotenv").config(); // load .env
 
-const dbURL = "mongodb://localhost:27017/Authentication-User-Dashboard-App";
+const dbURL = process.env.MONGO_URI;
 mongoose.connect(dbURL)
   .then(()=> console.log("MongoDB connected"))
   .catch((err) => console.error(err))

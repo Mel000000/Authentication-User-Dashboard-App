@@ -5,6 +5,7 @@ const { createUserSchema } = require("../models/userZSchema");
 
 const router = express.Router();
 
+// Endpoint to create a new user
 router.post("/createUser", async (req, res) => {
   const parsed = createUserSchema.safeParse(req.body);
   console.log("Received user data:", req.body);

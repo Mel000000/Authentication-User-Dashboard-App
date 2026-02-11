@@ -1,32 +1,12 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
 const generator = require("generate-password");
+const {sendMail} = require("../controllers/emailSender.js");
 
 const router = express.Router();
 
-// Create a transporter using Ethereal test credentials.
-// For production, replace with your actual SMTP server details.
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: `${process.env.EMAIL_USER}`,
-    pass: `${process.env.EMAIL_PASS}`,
-  },
-});
-
-
-const sendMail = async (email,code) => {
-  return transporter.sendMail({
-    from: `"Company" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Your verification code",
-    text: `Your verification code is ${code}`,
-    html: `<p>Your verification code is <b>${code}</b></p>`,
-  });
-};
 const codeStorage = {}; // In-memory storage for demo purposes
 
+// Endpoint to request a verification code
 router.post("/", async (req, res) => {
   const { email } = req.body;
   const code = generator.generate({
@@ -46,6 +26,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Endpoint to verify the code
 router.post("/verifyCode",async (req,res) => {
     const {email, userCode } = req.body;
     const storedCode = codeStorage[email];
@@ -56,4 +37,4 @@ router.post("/verifyCode",async (req,res) => {
     }
 })
 
-module.exports = router;
+module.exports = router;  
