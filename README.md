@@ -111,26 +111,48 @@ npm run dev
 ## Architecture
 
 ```mermaid
-graph TD
-    classDef frontend fill:#6366F1,color:#ffffff,stroke:#333,stroke-width:2px;
-    classDef backend fill:#F6821F,color:#ffffff,stroke:#333,stroke-width:2px;
-    classDef database fill:#2DBA4E,color:#ffffff,stroke:#333,stroke-width:2px;
-    classDef external fill:#F38020,color:#ffffff,stroke:#333,stroke-width:2px;
+flowchart TB
+    subgraph Client["🖥️ React Client (Port 5173)"]
+        direction TB
+        A["Login / Signup / Dashboard Pages"]
+        B["Axios HTTP Client"]
+    end
 
-    A["🖥️ React Frontend (Vite)"]:::frontend
-    B["⚙️ Express API"]:::backend
-    C["🍃 MongoDB"]:::database
-    D["🌍 REST Countries API"]:::external
-    E["🗺️ Google Maps API"]:::external
-    F["📧 SMTP Email Service"]:::external
-    G["✅ Google reCAPTCHA"]:::external
+    subgraph Server["⚙️ Express Server (Port 3000)"]
+        direction TB
+        C["🌐 API Routes<br/>• /api/user<br/>• /api/country<br/>• /api/codeRequest"]
+        
+        D["🔐 Authentication<br/>• JWT (HttpOnly Cookies)<br/>• bcrypt Hashing"]
+        
+        E["✅ Validation Layer<br/>• reCAPTCHA Verification<br/>• Zod Schema Validation"]
+        
+        F["📧 Email Service<br/>• Nodemailer<br/>• Reset Code Generator"]
+    end
 
-    A -->|HTTP /api/*| B
-    B -->|Mongoose| C
-    B -->|fetch| D
-    B -->|verify| G
-    A -->|direct embed| E
-    B -->|sendMail| F
+    subgraph Data["🗄️ Data Layer"]
+        direction TB
+        G[("MongoDB<br/>Users Collection")]
+        H[("Memory Store<br/>Reset Codes")]
+    end
+
+    subgraph External["🌐 External APIs"]
+        I["Google reCAPTCHA"]
+        J["REST Countries API"]
+        K["Google Maps API"]
+        L["SMTP (Gmail)"]
+    end
+
+    Client -->|HTTP Requests| Server
+    Server -->|Read/Write| Data
+    Server -->|Verify Token| I
+    Server -->|Fetch Countries| J
+    Client -->|Direct Embed| K
+    Server -->|Send Emails| L
+
+    style Client fill:#6366F1,color:#fff,stroke:#333,stroke-width:1px
+    style Server fill:#F6821F,color:#fff,stroke:#333,stroke-width:3px
+    style Data fill:#2DBA4E,color:#fff,stroke:#333,stroke-width:1px
+    style External fill:#F38020,color:#fff,stroke:#333,stroke-width:1px
 ```
 ## Features
 
