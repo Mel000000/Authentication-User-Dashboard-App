@@ -8,6 +8,7 @@ import {
 import Dashboard from './pages/dashboard.jsx';
 import SignupPage from './pages/signupPage.jsx';
 import ForgotPasswordPage from './pages/forgotPasswordPage.jsx';
+import HomePage from './pages/homePage.jsx';
 
 
 const router = createBrowserRouter([
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: "/forgot-password",
     element: <ForgotPasswordPage/>
+  },
+  {
+    path: "/home",
+    element: <HomePage/>
   }
 ]);
 

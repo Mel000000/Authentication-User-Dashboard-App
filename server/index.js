@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const mongoose = require("mongoose"); // MongoDB object modeling tool
 const cors = require("cors"); // allows requests from frontend (middleware)
+const cookieParser = require('cookie-parser');
 const countryRouter = require('./routes/country');
 const codeRequestRouter = require('./routes/codeRequest');
 const userRouter = require('./routes/user');
@@ -10,15 +11,19 @@ require("dotenv").config(); // load .env
 const dbURL = process.env.MONGO_URI;
 mongoose.connect(dbURL)
   .then(()=> console.log("MongoDB connected"))
-  .catch((err) => console.error(err))
-
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });
 
 const app = express()
 
+app.use(cookieParser());
 app.use(cors({
   origin: "http://localhost:5173", // allow Vite dev server
   credentials: true               // if needed for cookies/auth
 }));
+app.use(cookieParser());
 // Content Security Policy (CSP)
 app.use((req, res, next) => {
   res.setHeader(

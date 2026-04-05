@@ -2,6 +2,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
+const { email } = require("zod");
 
 // ----- CONFIG -----
 const MONGO_URI = process.env.MONGO_URI;
@@ -19,6 +20,11 @@ const generateUser = async (index) => {
 
   return {
     email: `user${index}@example.com`,
+    email_verified: true,
+    verification_code: null,
+    verification_expires: null,
+    reset_code: null,
+    reset_expires: null,
     password: hashedPassword,
     username: `user_${index}`,
     country: randomFromArray(countries),
