@@ -19,8 +19,6 @@ A full‑stack authentication and user dashboard application built with **Node.j
 
 ## Table of Contents
 - [Overview](#overview)
-- [Why This Project Matters](#why-this-project-matters)
-- [Who This Is For](#who-this-is-for)
 - [Why This Project Exists](#why-this-project-exists)
 - [Usage Example](#usage-example)
 - [Architecture](#architecture)
@@ -49,40 +47,18 @@ This application implements a secure authentication system with:
 The goal is to simulate a realistic, production‑ready authentication architecture.
 
 ---
-
-## Why This Project Matters
-
-Many tutorials store JWT in `localStorage` or skip CAPTCHA entirely. This project demonstrates **real‑world security practices**:
-
-- JWT in **HttpOnly cookies** (prevents XSS)
-- **reCAPTCHA** on login
-- **Time‑limited** reset codes
-- **Server‑side validation** with Zod
-
----
-
-## Who This Is For
-
-This project is ideal for:
-
-- Developers learning full‑stack authentication
-- Teams needing a secure auth template
-- Anyone integrating **Google Maps** & **REST Countries API**
-
-This project may NOT be ideal if:
-
-- You need OAuth2 / social login
-- You want a no‑code solution
-
----
-
 ## Why This Project Exists
 
-Many open‑source auth demos cut corners on security. This project provides a **secure, production‑style** reference that balances functionality with real‑world constraints like:
+This project is a **portfolio centerpiece** showcasing my full‑stack capabilities:
 
-- Stateless JWT with refresh patterns
-- Cookie security flags (`HttpOnly`, `SameSite`, `Secure`)
-- Input validation on both frontend and backend
+| Area | What I Demonstrated |
+|------|---------------------|
+| **Backend** | Express REST API, JWT auth, bcrypt hashing, Nodemailer, Zod validation |
+| **Frontend** | React components, React Router, Axios, Bootstrap, Google Maps embed |
+| **Security** | HttpOnly cookies, reCAPTCHA, time‑limited codes, input validation |
+| **Integrations** | REST Countries API, Google Maps API, SMTP email service |
+| **Database** | MongoDB schema design, Mongoose ODM, user data persistence |
+| **DevOps** | Environment variables, Git structure, Vite build tooling |
 
 ---
 
@@ -91,23 +67,8 @@ Many open‑source auth demos cut corners on security. This project provides a *
 1. **Sign up** – Choose a country, and the map auto‑zooms to it.
 2. **Log in** – Solve the reCAPTCHA, receive an `HttpOnly` cookie.
 3. **Dashboard** – View your profile (email, username, country, join date).
-4. **Reset password** – Receive a 6‑digit code by email to set a new password.
+4. **Login by Email-Verification** – Receive a 6‑digit code by email.
 
-```bash
-# Clone and run locally
-git clone https://github.com/Mel000000/Authentication-User-Dashboard-App.git
-cd Authentication-User-Dashboard-App
-
-# Backend
-cd server
-npm install
-nodemon index.js
-
-# Frontend (new terminal)
-cd client
-npm install
-npm run dev
-```
 ## Architecture
 
 ```mermaid
