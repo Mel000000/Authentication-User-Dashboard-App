@@ -47,6 +47,12 @@ This application implements a secure authentication system with:
 The goal is to simulate a realistic, production‑ready authentication architecture.
 
 ---
+
+<div align="center">
+  <img src="./readmeAssets/CreatingUser.gif" width="700" alt="Creating User Video"/>
+</div>
+
+---
 ## Why This Project Exists
 
 This project is a **portfolio centerpiece** showcasing my full‑stack capabilities:
