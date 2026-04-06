@@ -51,6 +51,9 @@ The goal is to simulate a realistic, production‑ready authentication architect
 <div align="center">
   <img src="./readmeAssets/CreatingUser.gif" width="700" alt="Creating User Video"/>
 </div>
+<div align="center">
+  Demonstration of signup
+</div>
 
 ---
 ## Why This Project Exists
