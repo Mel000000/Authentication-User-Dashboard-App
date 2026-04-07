@@ -23,7 +23,7 @@ export default function CountrySelector({ value, onChange }) {
 
   return (
     <Form.Group className="mb-3" controlId="formCountrySelect">
-      <Form.Label>Select your Country</Form.Label>
+      <Form.Label className="fw-semibold">Select your Country</Form.Label>
       <Form.Select value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="" >-- Select country --</option>
         {loading && <option disabled>Loading...</option>}

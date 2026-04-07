@@ -1,25 +1,24 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
-const SITE_KEY = import.meta.env.VITE_REACT_APP_RECAPTCHA_SITE_KEY; // set your key in .env
+const SITE_KEY = import.meta.env.VITE_REACT_APP_RECAPTCHA_SITE_KEY;
 
-function RecaptchaComponent({ onVerify,token,setToken,key }) {
+function RecaptchaComponent({ onVerify, token, setToken }) {
   const recaptchaRef = useRef(null);
 
   const handleChange = (value) => {
-    // value is the reCAPTCHA token
     setToken(value);
     if (onVerify) onVerify(value);
   };
 
   return (
-    <div>
+    <div className="d-flex justify-content-center">
       <ReCAPTCHA
         sitekey={SITE_KEY}
         onChange={handleChange}
         ref={recaptchaRef}
       />
-      {token && <p>Human verified!</p>}
+      {token && <p className="text-success mt-2">✓ Human verified!</p>}
     </div>
   );
 }

@@ -8,7 +8,7 @@ export default function AccountFields({
   return (
     <>
       <Form.Group className="mb-3 mt-4" controlId="formBasicPassword">
-        <Form.Label>Password</Form.Label>
+        <Form.Label className="fw-semibold">Password</Form.Label>
         <Form.Control
           type="password"
           placeholder="Password"
@@ -18,7 +18,7 @@ export default function AccountFields({
       </Form.Group>
 
       <Form.Group className="mb-3">
-        <Form.Label>Confirm Password</Form.Label>
+        <Form.Label className="fw-semibold">Confirm Password</Form.Label>
         <Form.Control
           type="password"
           placeholder="Confirm Password"

@@ -25,36 +25,77 @@ function Login() {
         }   
     }
 
-  return (
-    <Card style={{ width: '22rem', margin: '2rem auto', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-      <Card.Body>
-        <Card.Title>Already have an account?</Card.Title>
-        <Form onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit();
+    return (
+        <Card className="shadow-lg border-0" style={{ 
+            width: '24rem', 
+            borderRadius: '1.5rem', 
+            overflow: 'hidden' 
         }}>
-            <Form.Group className="mb-3" controlId="formBasicEmail" onChange={(e) => setEmail(e.target.value)}>
-                <Form.Label>Email</Form.Label>
-                <Form.Control type="email" placeholder="Enter email" />
-                <Form.Text className="text-muted">
-                We'll never share your email with anyone else.
-                </Form.Text>
-            </Form.Group>
+            
+            <Card.Body className="p-4">
+                <Card.Title className="text-center mb-4" style={{ fontSize: '1.75rem', color: '#2d3748' }}>
+                    Welcome Back!
+                </Card.Title>
+                
+                <Form onSubmit={(e) => {
+                    e.preventDefault();
+                    onSubmit();
+                }}>
+                    <Form.Group className="mb-3" controlId="formBasicEmail">
+                        <Form.Label className="fw-semibold">Email Address</Form.Label>
+                        <Form.Control 
+                            type="email" 
+                            placeholder="Enter email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            style={{ borderRadius: '0.75rem', padding: '0.75rem' }}
+                        />
+                        <Form.Text className="text-muted">
+                            We'll never share your email with anyone else.
+                        </Form.Text>
+                    </Form.Group>
 
-            <Form.Group className="mb-3" controlId="formBasicPassword" onChange={(e) => setPassword(e.target.value)}>
-                <Form.Label>Password</Form.Label>
-                <Form.Control type="password" placeholder="Password" />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="formBasicCheckbox">
-                <RecaptchaComponent token={token} setToken={setToken} key={import.meta.env.RECAPTCHA_SITE_KEY } onChange={(value) => setToken(value)}/>
-            </Form.Group>
-            <Button variant="primary" type="submit" disabled={validForm() ? false : true}>
-                Submit
-            </Button>
-        </Form>
-      </Card.Body>
-    </Card>
-  );
+                    <Form.Group className="mb-3" controlId="formBasicPassword">
+                        <Form.Label className="fw-semibold">Password</Form.Label>
+                        <Form.Control 
+                            type="password" 
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            style={{ borderRadius: '0.75rem', padding: '0.75rem' }}
+                        />
+                    </Form.Group>
+                    
+                    <Form.Group className="mb-3" controlId="formBasicCheckbox">
+                        <RecaptchaComponent token={token} setToken={setToken} />
+                    </Form.Group>
+                    
+                    <Button 
+                        variant="primary" 
+                        type="submit" 
+                        disabled={!validForm()}
+                        className="w-100 py-2 fw-bold"
+                        style={{ 
+                            borderRadius: '0.75rem',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            border: 'none',
+                            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 7px 14px rgba(102, 126, 234, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
+                        Sign In
+                    </Button>
+                </Form>
+            </Card.Body>
+        </Card>
+    );
 }
 
 export default Login;
