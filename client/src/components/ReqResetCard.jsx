@@ -1,8 +1,10 @@
-import { useState } from 'react';    
+import React,{ useState } from 'react';    
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { sendMail, verifyCode } from '../api/reqCodeApi';
+import { useNavigate } from 'react-router-dom';
 
 function ReqResetCard() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
@@ -20,6 +22,9 @@ function ReqResetCard() {
         try {
             await verifyCode(email, code);
             alert("Code verified! Proceed to reset password.");
+            navigate(`/reset-password`,
+                { state: { email } }
+            );
         } catch {
             alert("Invalid code");
         }

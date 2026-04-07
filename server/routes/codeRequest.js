@@ -1,6 +1,7 @@
 const express = require("express");
 const generator = require("generate-password");
 const {sendMail} = require("../controllers/emailSender.js");
+const User = require("../models/user");
 
 const router = express.Router();
 
@@ -36,5 +37,41 @@ router.post("/verifyCode",async (req,res) => {
         res.status(400).send("Invalid code");
     }
 })
+
+router.post("/resetPassword", async (req, res) => {
+    const { email, newPassword } = req.body;
+    
+    // Validate input
+    if (!email || !newPassword) {
+        return res.status(400).json({ error: "Email and new password are required" });
+    }
+    
+    // Validate password strength (add your requirements)
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+    
+    try {
+        const user = await User.findOne({ email });
+        
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        
+        const bcrypt = require('bcrypt');
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        
+        user.password = hashedPassword;
+        await user.save();
+        
+        console.log(`Password reset successfully for user: ${email}`);
+        res.status(200).json({ message: "Password reset successfully" });
+        
+    } catch (error) {
+        console.error("Error resetting password:", error);
+        res.status(500).json({ error: "Failed to reset password" });
+    }
+});
 
 module.exports = router;  

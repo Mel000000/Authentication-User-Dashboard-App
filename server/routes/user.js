@@ -147,9 +147,6 @@ router.post("/loginUser", async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
     });
 
-    console.log("✅ Cookie set. Token length:", jwtToken.length);
-    console.log("Cookie headers being sent:", res.getHeaders()['set-cookie']);
-
     const userResponse = {
       id: user._id,
       email: user.email,

@@ -54,11 +54,10 @@ export default function Dashboard() {
   if (error) {
     return (
       <Container fluid className="d-flex flex-column justify-content-center align-items-center" style={{ 
-        height: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        height: '100vh'
       }}>
         <div className="alert alert-danger shadow-lg">{error}</div>
-        <p className="text-white">Redirecting to login...</p>
+        <p className="text-black">Redirecting to login...</p>
       </Container>
     );
   }
