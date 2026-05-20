@@ -32,7 +32,7 @@ function ReqResetCard() {
 
     return (
         <Card className="shadow-lg border-0" style={{ 
-            width: '26rem', 
+            width: 'min(26rem, 95vw)', 
             borderRadius: '1.5rem', 
             overflow: 'hidden' 
         }}>
@@ -103,7 +103,7 @@ function ReqResetCard() {
                             <Button 
                                 variant="primary" 
                                 type="submit" 
-                                disabled={!validCode()}
+                                disabled={!validCode() || !validEmail()}
                                 style={{ 
                                     borderRadius: '0.75rem',
                                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

@@ -1,17 +1,22 @@
 const mongoose = require("mongoose");
+const { verifyCode } = require("../../client/src/api/reqCodeApi");
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   email_verified : { type: Boolean, default: false },
-  verification_code: { type: String },
-  verification_expires: { type: Date },
   password: { type: String, required: true },
-  reset_code: { type: String },
-  reset_expires: { type: Date },
   username: { type: String, required: true },
   country: { type: String, required: true },
-  profileImageUrl: { type: String, required: false },
+  profileImageUrl: {
+    type: String,
+    default: 'https://i.pravatar.cc/150'
+  },
+  profileImagePublicId: {
+    type: String,
+    default: null
+  },
+  verifyCode: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 

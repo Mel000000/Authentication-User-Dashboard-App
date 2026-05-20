@@ -6,13 +6,16 @@ const cookieParser = require('cookie-parser');
 const countryRouter = require('./routes/country');
 const codeRequestRouter = require('./routes/codeRequest');
 const userRouter = require('./routes/user');
+const profileImageRouter = require('./routes/profileImage');
 require("dotenv").config(); // load .env
 
 const dbURL = process.env.MONGO_URI;
+const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
+
 mongoose.connect(dbURL)
   .then(()=> console.log("MongoDB connected"))
   .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
+    console.error("MongoDB connection error:", err);
     process.exit(1);
   });
 
@@ -20,7 +23,7 @@ const app = express()
 
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173", // allow Vite dev server
+  origin: viteApiBaseUrl, // allow Vite dev server
   credentials: true               // if needed for cookies/auth
 }));
 app.use(cookieParser());
@@ -50,6 +53,7 @@ app.use(express.static(path.join(__dirname, '../client/dist'))); // serve fronte
 app.use("/api/country", countryRouter);
 app.use("/api/codeRequest", codeRequestRouter);
 app.use("/api/user", userRouter);
+app.use("/api/profile", profileImageRouter);
 
 // For all other routes, serve React's index.html (enables client-side routing)
 app.use((req, res) => {

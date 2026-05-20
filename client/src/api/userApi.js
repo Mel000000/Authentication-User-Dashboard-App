@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:3000/api";
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true,  // ← This sends cookies with EVERY request
+  withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,7 +22,6 @@ export const createUser = async (userData) => {
 export const loginUser = async (loginData) => {
   try {
     const res = await apiClient.post("/user/loginUser", loginData);
-    window.location.href = "http://localhost:5173/home"; // Redirect to home page on successful login
     return res.data;
   } catch (error) {
     console.error("Error logging in user:", error);

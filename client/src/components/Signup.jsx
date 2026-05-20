@@ -3,6 +3,8 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import { Container, Row, Col } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom'; // Missing import!
+import axios from 'axios';
 import defaultProfilePic from '../assets/default-profile-pic.jpg';
 import SignupMap from './SignupMap';
 import ProfileImageUploader from './ProfileImageUploader';
@@ -12,15 +14,19 @@ import { getCountryLoc } from '../api/countryApi';
 import { createUser } from '../api/userApi';
 
 function Signup() {
+    const navigate = useNavigate(); // Was missing!
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [profileImage, setProfileImage] = useState(defaultProfilePic);
+    const [profileImageFile, setProfileImageFile] = useState(null); // Need separate state for file
     const [country, setCountry] = useState('');
     const [x, setX] = useState(20);
     const [y, setY] = useState(0);
     const [zoom, setZoom] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false); // Prevent double submission
     const fileInputRef = useRef(null);
 
     const validForm = () => {
@@ -28,9 +34,8 @@ function Signup() {
         const hasUsername = username.trim().length > 0;
         const passwordsMatch = password.length > 0 && password === confirmPassword;
         const hasCountry = country.trim().length > 0;
-        const hasCustomProfileImage = profileImage !== defaultProfilePic;
 
-        return hasEmail && hasUsername && passwordsMatch && hasCountry && hasCustomProfileImage;
+        return hasEmail && hasUsername && passwordsMatch && hasCountry;
     };
 
     const onCountryChange = async (countryName) => {
@@ -51,19 +56,62 @@ function Signup() {
         }   
     };
 
-    const onSubmit = async () => {
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (loading || submitted) {
+            console.log("Already submitting, ignoring...");
+            return;
+        }
+        
+        setLoading(true);
+        setSubmitted(true);
+        
         try {
+            // create the user account
             const userData = { email, password, username, country };
-            await createUser(userData);
-            alert("User created successfully!");
+            console.log("Creating user...");
+            const response = await createUser(userData);
+            
+            if (response.user) {
+                // If user has a profile image to upload
+                if (profileImageFile && profileImage !== defaultProfilePic) {
+                    console.log("Uploading profile image...");
+                    const formData = new FormData();
+                    formData.append('profileImage', profileImageFile); // Use the file, not the preview URL
+                    // In Signup.jsx, just before the upload axios call
+                    console.log("profileImageFile:", profileImageFile);
+                    console.log("profileImage:", profileImage);
+                    await axios.post('http://localhost:3000/api/profile/upload-profile-image', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                        withCredentials: true
+                    });
+                }
+                
+                alert("User created successfully!");
+                navigate('/');
+            }
         } catch (error) {
             console.error("Error creating user:", error);
+            if (error.response) {
+                if (error.response.status === 409) {
+                    alert(error.response.data.error || "Email or username already exists");
+                } else {
+                    alert(error.response.data.error || "Failed to create user");
+                }
+            } else {
+                alert("An error occurred. Please try again.");
+            }
+            setSubmitted(false); // Reset on error so user can try again
+        } finally {
+            setLoading(false);
         }
     }
 
     return (
         <Card className="shadow-lg border-0" style={{ 
-            width: '70rem', 
+            width: 'min(70rem, 95vw)', 
             borderRadius: '1.5rem', 
             overflow: 'hidden' 
         }}>
@@ -74,32 +122,20 @@ function Signup() {
                     <p className="text-muted mt-2 mb-0">Join our community today</p>
                 </div>
                 
-                <Form onSubmit={(e) => {
-                    e.preventDefault();
-                    onSubmit();
-                }}>
+                <Form onSubmit={onSubmit}>
                     <Container fluid className="p-4">
                         <Row>
                             <Col md={6}>
                                 <div className="text-center mb-5">
                                     <ProfileImageUploader
                                         profileImage={profileImage} 
-                                        setProfileImage={setProfileImage} 
+                                        setProfileImage={setProfileImage}
+                                        setProfileImageFile={setProfileImageFile} // Pass the correct prop
                                         fileInputRef={fileInputRef} 
                                     />
                                 </div>
 
-                                <AccountFields
-                                    password={password} 
-                                    setPassword={setPassword}
-                                    confirmPassword={confirmPassword} 
-                                    setConfirmPassword={setConfirmPassword}
-                                />
-
-                                <CountrySelector value={country} onChange={onCountryChange} />
-                            </Col>
-
-                            <Col md={6}>
+                                
                                 <Form.Group className="mb-3" controlId="formUsername">
                                     <Form.Label className="fw-semibold">Username</Form.Label>
                                     <Form.Control
@@ -129,6 +165,18 @@ function Signup() {
                                     </Form.Control.Feedback>
                                 </Form.Group>
 
+                                <CountrySelector value={country} onChange={onCountryChange} />
+                            </Col>
+
+                            <Col md={6}>
+                                <AccountFields
+                                    password={password} 
+                                    setPassword={setPassword}
+                                    confirmPassword={confirmPassword} 
+                                    setConfirmPassword={setConfirmPassword}
+                                />
+                                
+
                                 <Form.Group className="mb-3" controlId="formSignupMap">
                                     <Form.Label className="fw-semibold">Your Location on Map</Form.Label>
                                     <SignupMap x={x} y={y} zoom={zoom} country={country} />
@@ -141,7 +189,7 @@ function Signup() {
                         <Button 
                             variant="primary" 
                             type="submit" 
-                            disabled={!validForm()}
+                            disabled={!validForm() || loading}
                             className="px-4 py-2 fw-bold"
                             style={{ 
                                 borderRadius: '0.75rem',
@@ -150,6 +198,7 @@ function Signup() {
                                 transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
+                                if (!validForm() || loading) return;
                                 e.currentTarget.style.transform = 'translateY(-2px)';
                                 e.currentTarget.style.boxShadow = '0 7px 14px rgba(102, 126, 234, 0.3)';
                             }}
@@ -158,7 +207,7 @@ function Signup() {
                                 e.currentTarget.style.boxShadow = 'none';
                             }}
                         >
-                            Create Account
+                            {loading ? 'Creating Account...' : 'Create Account'}
                         </Button>
                     </div>
                 </Form>

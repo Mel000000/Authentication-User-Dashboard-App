@@ -16,10 +16,10 @@ export default function AccountFields({
           isInvalid={password !== '' && password.length < 6}
           onChange={(e) => setPassword(e.target.value)}
         />
-      </Form.Group>
-      <Form.Control.Feedback type="invalid">
+        <Form.Control.Feedback type="invalid">
           Password must be at least 6 characters long
-      </Form.Control.Feedback>
+        </Form.Control.Feedback>
+      </Form.Group>
 
       <Form.Group className="mb-3">
         <Form.Label className="fw-semibold">Confirm Password</Form.Label>

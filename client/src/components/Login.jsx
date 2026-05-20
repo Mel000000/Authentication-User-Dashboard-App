@@ -4,8 +4,10 @@ import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import RecaptchaComponent from './RecaptchaComponent.jsx';
 import { loginUser } from '../api/userApi';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+    const navigate = useNavigate();
     const [token, setToken] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -18,7 +20,7 @@ function Login() {
         try {
             const loginData = {email, password, token};
             await loginUser(loginData);
-            alert("User logged in successfully!");
+            navigate("/home");
         }
         catch (error) {
             console.error("Login error:", error);

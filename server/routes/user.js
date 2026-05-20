@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { createUserSchema } = require("../models/userZSchema");
-// const verifyCaptcha = require("../helper/verifyCaptcha");
 
 const router = express.Router();
 
@@ -44,26 +43,50 @@ router.post("/createUser", async (req, res) => {
   if (!parsed.success) {
     console.log("Zod validation failed:", parsed.error.errors);
     return res.status(400).json({ error: "Invalid input", details: parsed.error.errors });
-    }
+  }
 
-  try {
+  try{
+    const existingUser = await User.findOne({ email: parsed.data.email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+ 
     const hashedPassword = await bcrypt.hash(parsed.data.password, 10);
+    const imageUrl = `https://ui-avatars.com/api/?background=667eea&color=fff&rounded=true&size=150&bold=true&name=${encodeURIComponent(parsed.data.username)}`;
     const newUserData = {
       email: parsed.data.email,
       email_verified: true, // For demo purposes, we set this to true. In a real app, you'd want to handle email verification properly.
-      verification_code: null,
-      verification_expires: null,
-      reset_code: null,
-      reset_expires: null,
       password: hashedPassword,
       username: parsed.data.username,
       country: parsed.data.country,
-      profileImageUrl: `https://i.pravatar.cc/150?img=1`, // Placeholder image URL, can be replaced with actual image handling logic
+      profileImageUrl: imageUrl,
+      profileImagePublicId: null, // No Cloudinary public ID for default avatars
+    };
 
-    }
     const newUser = new User(newUserData);
     await newUser.save();
-    res.status(201).json({ message: "User created successfully" });
+
+    const jwtToken = jwt.sign(
+      { userId: newUser._id, email: newUser.email, username: newUser.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    res.cookie('token', jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    const userResponse = {
+      id: newUser._id,
+      email: newUser.email,
+      username: newUser.username,
+      country: newUser.country,
+      profileImageUrl: newUser.profileImageUrl,
+      createdAt: newUser.createdAt
+    };
+    res.status(201).json({ message: "User created successfully" , user: userResponse});
   } catch (err) {
     console.error("Error creating user:", err);
     res.status(500).json({ error: "Failed to create user" });

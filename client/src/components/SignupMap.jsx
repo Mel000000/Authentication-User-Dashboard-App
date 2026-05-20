@@ -1,4 +1,4 @@
-import { GoogleMap,LoadScript } from "@react-google-maps/api";
+import { GoogleMap,LoadScript, MarkerF } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
 
 export default function SignupMap({ x, y, zoom,country }) {
@@ -20,6 +20,7 @@ export default function SignupMap({ x, y, zoom,country }) {
           fullscreenControl: false,
         }}
       >
+      <MarkerF position={center} title={country} />
 
       </GoogleMap>
     </LoadScript>

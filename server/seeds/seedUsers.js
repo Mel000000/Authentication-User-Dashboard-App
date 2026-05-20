@@ -21,14 +21,14 @@ const generateUser = async (index) => {
   return {
     email: `user${index}@example.com`,
     email_verified: true,
-    verification_code: null,
-    verification_expires: null,
     reset_code: null,
     reset_expires: null,
     password: hashedPassword,
     username: `user_${index}`,
     country: randomFromArray(countries),
     profileImageUrl: `https://i.pravatar.cc/150?img=${index % 70}`,
+    profileImagePublicId: null,
+    verifyCode: null,
   };
 };
 

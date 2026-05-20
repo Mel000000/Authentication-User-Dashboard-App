@@ -1,15 +1,14 @@
 import React, { useState } from 'react';    
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { resetPassword} from '../api/reqCodeApi';
-import { useLocation } from 'react-router-dom';
-
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function ResetPasswordCard() {
     const location = useLocation();
     const email = location.state?.email || '';
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-
+    const navigate = useNavigate();
     const validForm = () => { 
         return password.length >= 6 && password === confirmPassword;
     }
@@ -18,6 +17,7 @@ function ResetPasswordCard() {
         try {
             await resetPassword(email, password);
             alert("Password reset successfully! Please log in with your new password.");
+            navigate('/');
         } catch (error) {
             console.error("Error resetting password:", error);
             alert("Failed to reset password. Please try again.");
@@ -26,7 +26,7 @@ function ResetPasswordCard() {
 
     return (
         <Card className="shadow-lg border-0" style={{ 
-            width: '26rem', 
+            width: 'min(26rem, 95vw)', 
             borderRadius: '1.5rem', 
             overflow: 'hidden' 
         }}>  
@@ -67,7 +67,7 @@ function ResetPasswordCard() {
                             Passwords do not match
                         </Form.Control.Feedback>
                     </Form.Group>
-                    <Button onClick={handleSubmit} variant="primary" type="submit" className="w-100" disabled={!validForm()} style={{ borderRadius: '0.75rem', padding: '0.75rem' }}>
+                    <Button type="submit" variant="primary" className="w-100" disabled={!validForm()} style={{ borderRadius: '0.75rem', padding: '0.75rem' }}>
                         Reset Password
                     </Button>
                 </Form>
