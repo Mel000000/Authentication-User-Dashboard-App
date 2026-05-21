@@ -9,15 +9,21 @@ const userRouter = require('./routes/user');
 const profileImageRouter = require('./routes/profileImage');
 require("dotenv").config(); // load .env
 
-const dbURL = process.env.MONGO_URI;
+const uri = process.env.MONGODB_URI;
 const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
+const PORT = process.env.PORT || 3000;
 
-mongoose.connect(dbURL)
-  .then(()=> console.log("MongoDB connected"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1);
-  });
+async function connectDB() {
+  try {
+    await mongoose.connect(uri, {dbName: "Authentication-User-Dashboard-App"  });
+    console.log("Successfully connected to MongoDB via Mongoose!");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    process.exit(1); // Stop the server if database connection fails
+  }
+}
+
+connectDB();
 
 const app = express()
 
