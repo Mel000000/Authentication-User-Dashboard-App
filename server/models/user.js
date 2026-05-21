@@ -17,6 +17,7 @@ const userSchema = new Schema({
     default: null
   },
   verifyCode: { type: String },
+  verifyCodeExpires: { type: Date, default: () => Date.now() + 10*60*1000 }, // 10 minutes from now
   createdAt: { type: Date, default: Date.now },
 });
 

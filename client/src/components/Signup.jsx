@@ -71,22 +71,22 @@ function Signup() {
         try {
             // create the user account
             const userData = { email, password, username, country };
-            console.log("Creating user...");
             const response = await createUser(userData);
             
             if (response.user) {
-                // If user has a profile image to upload
                 if (profileImageFile && profileImage !== defaultProfilePic) {
-                    console.log("Uploading profile image...");
                     const formData = new FormData();
                     formData.append('profileImage', profileImageFile); // Use the file, not the preview URL
-                    // In Signup.jsx, just before the upload axios call
-                    console.log("profileImageFile:", profileImageFile);
-                    console.log("profileImage:", profileImage);
-                    await axios.post('http://localhost:3000/api/profile/upload-profile-image', formData, {
+                    try{
+                        await axios.post('http://localhost:3000/api/profile/upload-profile-image', formData, {
                         headers: { 'Content-Type': 'multipart/form-data' },
                         withCredentials: true
                     });
+                    }catch (error) {
+                        console.warn("Avatar upload failed, but account created:", error);
+                        alert("Account created, but profile picture could not be uploaded. You can retry later.");
+                    }
+                    
                 }
                 
                 alert("User created successfully!");

@@ -20,9 +20,9 @@ function ReqResetCard() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await verifyCode(email, code);
+            const { resetToken } = await verifyCode(email, code);
             alert("Code verified! Proceed to reset password.");
-            navigate(`/reset-password`,
+            navigate(`/reset-password?token=${resetToken}`,
                 { state: { email } }
             );
         } catch {

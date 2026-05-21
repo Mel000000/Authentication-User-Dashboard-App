@@ -24,6 +24,7 @@ router.post("/", async (req, res) => {
       return res.status(404).send("User not found");
     }
     user.verifyCode = hashedCode;
+    user.verifyCodeExpires = new Date(Date.now() + 10*60*1000); // Set expiration time to 10 minutes from now
     await user.save();
     const info = await sendMail(email,code);
     res.status(200).send("Verification email sent");
@@ -44,6 +45,10 @@ router.post("/verifyCode",async (req,res) => {
     if (!user) {
         return res.status(404).send("User not found");
     }
+    if (user.verifyCodeExpires < new Date()) {
+        return res.status(400).send("Code expired. Request a new one.");
+    }
+
     const isMatch = await bcrypt.compare(userCode, user.verifyCode);
     if (isMatch) {
         const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
@@ -56,12 +61,19 @@ router.post("/verifyCode",async (req,res) => {
     }
 })
 
-router.post("/resetPassword", async (req, res) => {
+router.post("/resetPassword/:token", async (req, res) => {
     const { email, newPassword } = req.body;
-    
+    const resetToken = req.params.token;
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+
+    if (!decoded){
+        alert("Expired reset token");
+        return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
     // Validate input
     if (!email || !newPassword) {
-        return res.status(400).json({ error: "Email and new password are required" });
+        return res.status(400).json({ error: "Email, new password, and reset token are required" });
     }
     
     // Validate password strength (add your requirements)

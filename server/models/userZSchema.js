@@ -11,6 +11,7 @@ const createUserSchema = z.object({
   profileImageUrl: z.string().optional(),
   profileImagePublicId: z.string().optional(),
   verifyCode: z.string().optional(),
+  verifyCodeExpires: z.date().optional(),
   createdAt: z.date().optional(),
 });
 

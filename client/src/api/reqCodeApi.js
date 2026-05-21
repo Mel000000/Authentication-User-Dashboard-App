@@ -21,9 +21,9 @@ export const verifyCode = async (email, userCode) => {
   }
 };
 
-export const resetPassword = async (email, newPassword) => {
+export const resetPassword = async (email, newPassword, resetToken) => {
   try {
-    const res = await axios.post(`${API_BASE_URL}/codeRequest/resetPassword`, { email, newPassword });
+    const res = await axios.post(`${API_BASE_URL}/codeRequest/resetPassword`, { email, newPassword, resetToken });
     return res.data;
   } catch (error) {
     console.error("Error resetting password:", error);
