@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { verifyCode } = require("../../client/src/api/reqCodeApi");
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({

@@ -22,8 +22,8 @@ function ReqResetCard() {
         try {
             const { resetToken } = await verifyCode(email, code);
             alert("Code verified! Proceed to reset password.");
-            navigate(`/reset-password?token=${resetToken}`,
-                { state: { email } }
+            navigate(`/reset-password`,
+                { state: { email, resetToken } }
             );
         } catch {
             alert("Invalid code");

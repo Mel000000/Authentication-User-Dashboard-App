@@ -67,7 +67,6 @@ router.post("/resetPassword/:token", async (req, res) => {
     const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
 
     if (!decoded){
-        alert("Expired reset token");
         return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 

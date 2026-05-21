@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';    
+import { useState, useRef, useMemo, useEffect } from 'react';    
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
@@ -12,6 +12,7 @@ import AccountFields from './AccountFields';
 import CountrySelector from './CountrySelector';
 import { getCountryLoc } from '../api/countryApi';
 import { createUser } from '../api/userApi';
+import apiClient from '../api/apiClient';
 
 function Signup() {
     const navigate = useNavigate(); // Was missing!
@@ -29,14 +30,15 @@ function Signup() {
     const [submitted, setSubmitted] = useState(false); // Prevent double submission
     const fileInputRef = useRef(null);
 
-    const validForm = () => {
-        const hasEmail = email.trim().length > 0 && email.includes("@");
-        const hasUsername = username.trim().length > 0;
-        const passwordsMatch = password.length > 0 && password === confirmPassword;
-        const hasCountry = country.trim().length > 0;
-
-        return hasEmail && hasUsername && passwordsMatch && hasCountry;
-    };
+    const validForm = useMemo(() => {
+        return (
+            email.includes('@') &&
+            username.trim().length > 0 &&
+            password.length >= 6 &&
+            password === confirmPassword &&
+            country.trim().length > 0
+        );
+    }, [email, username, password, confirmPassword, country]);
 
     const onCountryChange = async (countryName) => {
         try {
@@ -58,30 +60,23 @@ function Signup() {
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        
-        // Prevent double submission
-        if (loading || submitted) {
-            console.log("Already submitting, ignoring...");
-            return;
-        }
+        if (!validForm || loading) return;
         
         setLoading(true);
-        setSubmitted(true);
         
         try {
-            // create the user account
+            // create the user account in backend
             const userData = { email, password, username, country };
             const response = await createUser(userData);
-            
-            if (response.user) {
+            // if user creation was successful, try uploading the profile image (if it's not the default)
+            if (response) {
                 if (profileImageFile && profileImage !== defaultProfilePic) {
                     const formData = new FormData();
                     formData.append('profileImage', profileImageFile); // Use the file, not the preview URL
                     try{
-                        await axios.post('http://localhost:3000/api/profile/upload-profile-image', formData, {
+                        await apiClient.post('/profile/upload-profile-image', formData, {
                         headers: { 'Content-Type': 'multipart/form-data' },
-                        withCredentials: true
-                    });
+                        });
                     }catch (error) {
                         console.warn("Avatar upload failed, but account created:", error);
                         alert("Account created, but profile picture could not be uploaded. You can retry later.");
@@ -94,20 +89,11 @@ function Signup() {
             }
         } catch (error) {
             console.error("Error creating user:", error);
-            if (error.response) {
-                if (error.response.status === 409) {
-                    alert(error.response.data.error || "Email or username already exists");
-                } else {
-                    alert(error.response.data.error || "Failed to create user");
-                }
-            } else {
-                alert("An error occurred. Please try again.");
-            }
-            setSubmitted(false); // Reset on error so user can try again
+            alert(error.response?.data?.error || "We could not create your account. Please try again.");
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     return (
         <Card className="shadow-lg border-0" style={{ 
@@ -189,7 +175,7 @@ function Signup() {
                         <Button 
                             variant="primary" 
                             type="submit" 
-                            disabled={!validForm() || loading}
+                            disabled={!validForm || loading}
                             className="px-4 py-2 fw-bold"
                             style={{ 
                                 borderRadius: '0.75rem',
@@ -198,7 +184,7 @@ function Signup() {
                                 transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                                if (!validForm() || loading) return;
+                                if (!validForm || loading) return;
                                 e.currentTarget.style.transform = 'translateY(-2px)';
                                 e.currentTarget.style.boxShadow = '0 7px 14px rgba(102, 126, 234, 0.3)';
                             }}

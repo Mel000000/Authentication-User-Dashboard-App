@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 function ResetPasswordCard() {
     const location = useLocation();
-    const email = location.state?.email || '';
+    const {email, resetToken} = location.state || {};
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const navigate = useNavigate();
@@ -15,7 +15,7 @@ function ResetPasswordCard() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await resetPassword(email, password);
+            await resetPassword(email, password, resetToken);
             alert("Password reset successfully! Please log in with your new password.");
             navigate('/');
         } catch (error) {
