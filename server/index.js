@@ -29,9 +29,12 @@ const app = express()
 
 app.use(cookieParser());
 app.use(cors({
-  origin: viteApiBaseUrl, // allow Vite dev server
-  credentials: true               // if needed for cookies/auth
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://authentication-user-dashboard-app.onrender.com/' 
+    : 'http://localhost:5173', 
+  credentials: true 
 }));
+
 app.use(cookieParser());
 // Content Security Policy (CSP)
 app.use((req, res, next) => {
@@ -67,5 +70,5 @@ app.use((req, res) => {
 });
 
 app.listen(3000, () => {
-  console.log(`Example app listening on port 3000!`)
+  console.log(`App listening on port 3000!`)
 })
