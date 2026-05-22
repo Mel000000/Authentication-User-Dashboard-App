@@ -55,8 +55,8 @@ app.use((req, res, next) => {
 
 app.use(express.json()); // parse JSON request bodies
 app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodies
-app.use(express.static(path.join(__dirname,"public"))); // serve static files
-app.use(express.static(path.join(__dirname, '../client/dist'))); // serve frontend build files
+//app.use(express.static(path.join(__dirname,"public"))); // serve static files NOTE: not in production, since React build will be served instead
+//app.use(express.static(path.join(__dirname, '../client/dist'))); 
 
 // Routes that are server API endpoints
 app.use("/api/country", countryRouter);
