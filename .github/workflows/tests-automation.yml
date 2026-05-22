@@ -1,0 +1,7 @@
+# This workflow runs on every push to testing, runs the tests and if they pass, it merges the changes to main
+name: Tests Automation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ testing ]
