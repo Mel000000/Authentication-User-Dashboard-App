@@ -4,11 +4,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { createUserSchema } = require("../models/userZSchema");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
 // Get current user (protected route)
-router.get("/me", async (req, res) => {
+router.get("/me", auth, async (req, res) => {
   const token = req.cookies?.token;
   
   if (!token) {
