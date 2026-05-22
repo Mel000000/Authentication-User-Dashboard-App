@@ -29,7 +29,7 @@ const app = express()
 
 app.use(cookieParser());
 
-const allowedOrigin = "https://authentication-user-dashboard-app-frontend.onrender.com";
+const allowedOrigin = "https://authentication-user-dashboard-app.onrender.com";
 
 app.use(cors({
   origin: allowedOrigin, 
