@@ -16,9 +16,7 @@ function Login() {
         return email && password && token;
     }
 
-    const onSubmit = async (e) => {
-        e.preventDefault(); 
-        
+    const onSubmit = async () => {
         try {
             const loginData = { email, password, token };
             const data = await loginUser(loginData);
