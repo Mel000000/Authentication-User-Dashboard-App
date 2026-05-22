@@ -1,0 +1,86 @@
+# This workflow runs on every push to testing, runs the tests and if they pass, it merges the changes to main
+name: Tests Automation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ testing ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      
+      - name: Run tests
+        run: npx playwright test || true
+        env:
+          CI: true
+      
+      - name: Format test results
+        run: |
+          if [ -f results.json ]; then
+            # Parse metrics from Playwright JSON output
+            PASSED=$(jq '.stats.expected' results.json)
+            FAILED=$(jq '.stats.unexpected' results.json)
+            SKIPPED=$(jq '.stats.skipped' results.json)
+            TOTAL=$(jq '.stats.suites' results.json)
+
+            echo "### 📊 Test Suite Execution Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏭️ Skipped | $SKIPPED |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Generate a native Markdown Pie Chart using Mermaid
+            echo "#### Visual Breakdown" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+            echo "pie title Test Suite Distribution" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Passed\" : $PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Failed\" : $FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Skipped\" : $SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+            # Force step failure if there were failing tests so the pipeline blocks the PR merge
+            if [ "$FAILED" -gt 0 ]; then
+              echo "❌ Failing tests detected. Halting pipeline automation."
+              exit 1
+            fi
+          else
+            echo "⚠️ Could not locate results.json report file."
+            exit 1
+          fi
+
+        
+      - name: Merge to main
+        if: success()
+        uses: devops-infra/action-pull-request@v1.1.1
+        with:
+          github_token: ${{ secrets.GIT_TOKEN }}
+          source_branch: testing
+          target_branch: main
+          title: 'Automated Merge from testing to main'
+          body: 'This PR was automatically created by the Tests Automation workflow after successful tests.'
