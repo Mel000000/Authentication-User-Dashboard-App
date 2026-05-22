@@ -63,9 +63,9 @@ app.use("/api/user", userRouter);
 app.use("/api/profile", profileImageRouter);
 
 // For all other routes, serve React's index.html (enables client-side routing)
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+/*app.use((req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html')); // not needed in development since Vite dev server will handle this, but required in production to serve the React app
+});*/
 
 app.listen(3000, () => {
   console.log(`App listening on port 3000!`)
