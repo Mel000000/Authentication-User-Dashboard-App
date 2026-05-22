@@ -12,7 +12,9 @@ export const createUser = async (userData) => {
 
 export const loginUser = async (loginData) => {
   try {
-    const res = await apiClient.post("/user/loginUser", loginData);
+    const res = await apiClient.post("/user/loginUser", loginData,{
+      withCredentials: true, // Ensure cookies are sent with the request
+    });
     return res.data;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -24,7 +26,9 @@ export const loginUser = async (loginData) => {
 
 export const getCurrentUser = async () => {
   try {
-    const res = await apiClient.get("/user/me");
+    const res = await apiClient.get("/user/me",{
+      withCredentials: true, // Ensure cookies are sent with the request
+    });
     return res.data;
   } catch (error) {
     console.error("Error getting current user:", error);
@@ -34,7 +38,9 @@ export const getCurrentUser = async () => {
 
 export const logoutUser = async () => {
   try {
-    const res = await apiClient.post("/user/logout");
+    const res = await apiClient.post("/user/logout", {
+      withCredentials: true, // Ensure cookies are sent with the request
+    });
     return res.data;
   } catch (error) {
     console.error("Error logging out:", error);
