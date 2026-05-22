@@ -19,14 +19,18 @@ export default function Dashboard() {
         console.error('Auth error:', err);
         setError('Session expired. Please login again.');
         setLoading(false);
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
+        
+        // Only redirect if they aren't already sitting on the landing/login page
+        if (window.location.pathname !== '/') {
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+        }
       }
     };
 
     fetchUser();
-  }, [navigate]);
+  }, []);
 
   const handleLogout = async () => {
     try {
