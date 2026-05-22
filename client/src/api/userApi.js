@@ -15,6 +15,7 @@ export const loginUser = async (loginData) => {
     const res = await apiClient.post("/user/loginUser", loginData,{
       withCredentials: true, // Ensure cookies are sent with the request
     });
+    localStorage.setItem("authToken", res.data.token); 
     return res.data;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -28,6 +29,9 @@ export const getCurrentUser = async () => {
   try {
     const res = await apiClient.get("/user/me",{
       withCredentials: true, // Ensure cookies are sent with the request
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}` // Include token in Authorization header
+      }
     });
     return res.data;
   } catch (error) {
@@ -40,6 +44,9 @@ export const logoutUser = async () => {
   try {
     const res = await apiClient.post("/user/logout", {
       withCredentials: true, // Ensure cookies are sent with the request
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}` // Include token in Authorization header
+      }
     });
     return res.data;
   } catch (error) {

@@ -90,7 +90,11 @@ router.post("/createUser", async (req, res) => {
       profileImageUrl: newUser.profileImageUrl,
       createdAt: newUser.createdAt
     };
-    res.status(201).json({ message: "User created successfully" , user: userResponse});
+    res.status(201).json({ 
+      message: "User created successfully" ,
+      token: jwtToken,
+      user: userResponse
+    });
   } catch (err) {
     console.error("Error creating user:", err);
     res.status(500).json({ error: "Failed to create user" });
@@ -184,6 +188,7 @@ router.post("/loginUser", async (req, res) => {
 
     res.status(200).json({ 
       message: "Login successful", 
+      token: jwtToken,
       user: userResponse 
     });
   } catch (err) {

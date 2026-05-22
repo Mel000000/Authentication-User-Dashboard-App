@@ -19,7 +19,8 @@ function Login() {
     const onSubmit = async () => {
         try {
             const loginData = {email, password, token};
-            await loginUser(loginData);
+            const data = await loginUser(loginData);
+            setUser(data.user);
             navigate("/home");
         }
         catch (error) {
