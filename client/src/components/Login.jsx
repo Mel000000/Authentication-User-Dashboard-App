@@ -21,7 +21,8 @@ function Login() {
             const loginData = { email, password, token };
             const data = await loginUser(loginData);
             
-            if (data) {
+            if (data && data.token) {
+                localStorage.setItem("authToken", data.token);
                 setTimeout(() => {
                     navigate("/home");
                 }, 100);

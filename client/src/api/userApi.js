@@ -43,6 +43,7 @@ export const logoutUser = async () => {
     const res = await apiClient.post("/user/logout", {}, {
       withCredentials: true,
     });
+    localStorage.removeItem("authToken");
     return res.data;
   } catch (error) {
     console.error("Error logging out:", error);
