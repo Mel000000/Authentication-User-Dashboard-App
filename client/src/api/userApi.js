@@ -2,7 +2,9 @@ import apiClient from "./apiClient";
 
 export const createUser = async (userData) => {
   try {
-    const res = await apiClient.post("/user/createUser", userData); 
+    const res = await apiClient.post("/user/createUser", userData, {
+      withCredentials: true,
+    }); 
     return res.data;
   } catch (error) {
     console.error("Error creating user:", error);
@@ -12,10 +14,10 @@ export const createUser = async (userData) => {
 
 export const loginUser = async (loginData) => {
   try {
-    const res = await apiClient.post("/user/loginUser", loginData,{
-      withCredentials: true, // Ensure cookies are sent with the request
+    const res = await apiClient.post("/user/loginUser", loginData, {
+      withCredentials: true, 
     });
-    localStorage.setItem("authToken", res.data.token); 
+    
     return res.data;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -24,14 +26,10 @@ export const loginUser = async (loginData) => {
   }
 };
 
-
 export const getCurrentUser = async () => {
   try {
-    const res = await apiClient.get("/user/me",{
-      withCredentials: true, // Ensure cookies are sent with the request
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("authToken")}` // Include token in Authorization header
-      }
+    const res = await apiClient.get("/user/me", {
+      withCredentials: true, 
     });
     return res.data;
   } catch (error) {
@@ -42,11 +40,8 @@ export const getCurrentUser = async () => {
 
 export const logoutUser = async () => {
   try {
-    const res = await apiClient.post("/user/logout", {
-      withCredentials: true, // Ensure cookies are sent with the request
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("authToken")}` // Include token in Authorization header
-      }
+    const res = await apiClient.post("/user/logout", {}, {
+      withCredentials: true,
     });
     return res.data;
   } catch (error) {
