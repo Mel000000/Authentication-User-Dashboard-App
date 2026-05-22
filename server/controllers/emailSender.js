@@ -3,8 +3,8 @@ require("dotenv").config(); // load .env
 
 // Create reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
+  host: "smtp-relay.gmail.com",
+  port: 2525,
   secure: false, 
   localAddress: "0.0.0.0", 
   auth: {
