@@ -26,7 +26,7 @@ router.post("/", async (req, res) => {
     user.verifyCode = hashedCode;
     user.verifyCodeExpires = new Date(Date.now() + 10*60*1000); // Set expiration time to 10 minutes from now
     await user.save();
-    const info = await sendMail(email,code);
+    await sendMail(email,code);
     res.status(200).send("Verification email sent");
   } catch (err) {
     console.error("Mail error:", err);
