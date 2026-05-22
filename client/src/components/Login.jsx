@@ -21,11 +21,16 @@ function Login() {
             const loginData = { email, password, token };
             const data = await loginUser(loginData);
             
+            // Ensure data exists AND the backend token fallback is present
             if (data && data.token) {
                 localStorage.setItem("authToken", data.token);
+                
+                // Allow storage macro-task space to settle 
                 setTimeout(() => {
                     navigate("/home");
-                }, 100);
+                }, 150);
+            } else {
+                console.warn("Logged in, but no explicit token payload returned in JSON.");
             }
         }
         catch (error) {
