@@ -5,3 +5,37 @@ on:
   workflow_dispatch:
   push:
     branches: [ testing ]
+
+jobs:
+  test:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: Run tests
+        run: npx playwright test
+        env:
+          CI: true
+        
+      - name: Merge to main
+        if: success()
+        uses: devops-infra/action-pull-request@v0.2.0
+        with:
+          github_token: ${{ secrets.GIT_TOKEN }}
+          source_branch: testing
+          target_branch: main
+          pr_title: 'Automated Merge from testing to main'
+          pr_body: 'This PR was automatically created by the Tests Automation workflow after successful tests.'
