@@ -22,9 +22,16 @@ export const loginUser = async (loginData) => {
   }
 };
 
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (explicitToken=null) => {
   try {
-    const res = await apiClient.get("/user/me");
+    const config = {};
+    if (explicitToken) {
+      config.headers = {
+        Authorization: `Bearer ${explicitToken}`
+      };
+    }
+
+    const res = await apiClient.get("/user/me", config);
     return res.data;
   } catch (error) {
     console.error("Error getting current user:", error);

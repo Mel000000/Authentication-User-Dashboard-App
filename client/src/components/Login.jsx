@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import RecaptchaComponent from './RecaptchaComponent.jsx';
-import { loginUser } from '../api/userApi';
+import { loginUser, getCurrentUser } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
@@ -16,21 +16,22 @@ function Login() {
         return email && password && token;
     }
 
-    const onSubmit = async () => {
+    const onSubmit = async (e) => {
+        e.preventDefault(); 
+        
         try {
             const loginData = { email, password, token };
             const data = await loginUser(loginData);
-            
-            // Ensure data exists AND the backend token fallback is present
+          
             if (data && data.token) {
                 localStorage.setItem("authToken", data.token);
                 
-                // Allow storage macro-task space to settle 
-                setTimeout(() => {
-                    navigate("/home");
-                }, 150);
+                const userProfile = await getCurrentUser(data.token);
+                console.log("Successfully logged in profile:", userProfile);
+                
+                navigate("/home");
             } else {
-                console.warn("Logged in, but no explicit token payload returned in JSON.");
+                console.error("Backend authenticated you, but didn't return a 'token' property in the JSON body.");
             }
         }
         catch (error) {
