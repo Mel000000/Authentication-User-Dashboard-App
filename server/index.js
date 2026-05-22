@@ -29,10 +29,8 @@ const app = express()
 
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://authentication-user-dashboard-app.onrender.com/' 
-    : 'http://localhost:5173', 
-  credentials: true 
+    origin: 'https://authentication-user-dashboard-app.onrender.com', 
+    credentials: true 
 }));
 
 app.use(cookieParser());
