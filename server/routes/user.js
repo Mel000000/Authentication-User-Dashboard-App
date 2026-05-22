@@ -32,7 +32,11 @@ router.get("/me", async (req, res) => {
 
 // Logout endpoint
 router.post("/logout", (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token",{
+    httpOnly: true,
+    secure: true, // Set to true in production (requires HTTPS)
+    sameSite: 'none'
+  });
   res.json({ message: "Logged out successfully" });
 });
 
