@@ -8,3 +8,8 @@ test('has title', async ({ page }) => {
   await expect(page.getByText("Welcome Back!")).toBeVisible();
 });
 
+test("testing workflow with intentional error", async ({ page }) => {
+  await page.getByText("Not a real element").click();
+
+});
+
