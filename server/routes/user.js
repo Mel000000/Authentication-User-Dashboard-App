@@ -10,15 +10,8 @@ const router = express.Router();
 
 // Get current user (protected route)
 router.get("/me", auth, async (req, res) => {
-  const token = req.cookies?.token;
-  
-  if (!token) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await User.findById(req.user.userId).select('-password');
     
     if (!user) {
       return res.status(401).json({ error: "User not found" });
@@ -26,7 +19,7 @@ router.get("/me", auth, async (req, res) => {
     
     res.json(user);
   } catch (err) {
-    console.error("Auth error:", err);
+    console.error("Auth error inside /me route:", err);
     res.status(401).json({ error: "Invalid token" });
   }
 });
