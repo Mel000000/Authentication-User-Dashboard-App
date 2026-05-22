@@ -61,9 +61,9 @@ router.post("/verifyCode",async (req,res) => {
     }
 })
 
-router.post("/resetPassword/:token", async (req, res) => {
+router.post("/resetPassword", async (req, res) => {
     const { email, newPassword } = req.body;
-    const resetToken = req.params.token;
+    const resetToken = req.query.token;
     const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
 
     if (!decoded){
