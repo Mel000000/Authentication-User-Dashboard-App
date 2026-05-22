@@ -25,7 +25,6 @@ function Login() {
                 localStorage.setItem("authToken", data.token);
                 
                 const userProfile = await getCurrentUser(data.token);
-                console.log("Successfully logged in profile:", userProfile);
                 
                 navigate("/home");
             } else {
