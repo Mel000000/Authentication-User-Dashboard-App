@@ -18,9 +18,14 @@ function Login() {
 
     const onSubmit = async () => {
         try {
-            const loginData = {email, password, token};
+            const loginData = { email, password, token };
             const data = await loginUser(loginData);
-            navigate("/home");
+            
+            if (data) {
+                setTimeout(() => {
+                    navigate("/home");
+                }, 100);
+            }
         }
         catch (error) {
             console.error("Login error:", error);

@@ -46,8 +46,8 @@ app.use((req, res, next) => {
       frame-src https://www.google.com;
       worker-src https://www.google.com https://www.gstatic.com;
       style-src 'self' 'unsafe-inline';
-      img-src 'self' data: https://www.google.com https://www.gstatic.com;
-      connect-src 'self' https://www.google.com;
+      img-src 'self' data: https://www.google.com https://www.gstatic.com https://ui-avatars.com;
+      connect-src 'self' https://www.google.com https://authentication-user-dashboard-app-backend.onrender.com;
     `.replace(/\s{2,}/g, ' ').trim()
   );
   next();
@@ -69,6 +69,6 @@ app.use("/api/profile", profileImageRouter);
   res.sendFile(path.join(__dirname, '../client/dist/index.html')); // not needed in development since Vite dev server will handle this, but required in production to serve the React app
 });*/
 
-app.listen(3000, () => {
-  console.log(`App listening on port 3000!`)
-})
+app.listen(PORT, () => {
+  console.log(`App listening on port ${PORT}!`);
+});
