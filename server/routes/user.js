@@ -168,10 +168,10 @@ router.post("/loginUser", async (req, res) => {
 
     // Set httpOnly cookie
     res.cookie("token", jwtToken, {
-      httpOnly: true,     // Can't be accessed by JavaScript (prevents XSS)
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      sameSite: "lax",    // CSRF protection
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+      httpOnly: true,     
+      secure: true, 
+      sameSite: "none",    // Set to 'none' for cross-site cookies (required for secure cookies in modern browsers)
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days 
     });
 
     const userResponse = {
