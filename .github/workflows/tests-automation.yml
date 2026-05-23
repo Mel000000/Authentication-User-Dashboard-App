@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       # Installs OS system dependencies every run, but skips downloading the 
       # actual browser binaries if they were found in our cache storage step.
