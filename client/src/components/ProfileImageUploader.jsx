@@ -25,8 +25,8 @@ export default function ProfileImageUploader({ profileImage, setProfileImage, se
         onClick={handleImageClick}
         style={{
           position: 'relative',
-          width: '150px',
-          height: '150px',
+          width: '200px',
+          height: '200px',
           borderRadius: '50%',
           cursor: 'pointer',
           overflow: 'hidden', 

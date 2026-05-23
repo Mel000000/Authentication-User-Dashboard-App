@@ -112,7 +112,7 @@ function Signup() {
                     <Container fluid className="p-4">
                         <Row>
                             <Col md={6}>
-                                <div className="text-center mb-5">
+                                <div className="text-center mb-3">
                                     <ProfileImageUploader
                                         profileImage={profileImage} 
                                         setProfileImage={setProfileImage}
@@ -163,8 +163,7 @@ function Signup() {
                                 />
                                 
 
-                                <Form.Group className="mb-3" controlId="formSignupMap">
-                                    <Form.Label className="fw-semibold">Your Location on Map</Form.Label>
+                                <Form.Group className="mb-3 mt-5" controlId="formSignupMap">
                                     <SignupMap x={x} y={y} zoom={zoom} country={country} />
                                 </Form.Group>
                             </Col>
