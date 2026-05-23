@@ -79,10 +79,10 @@ This project is a **portfolio centerpiece** showcasing my full‑stack capabilit
 | Area | What I Demonstrated |
 |------|---------------------|
 | **Backend** | Express REST API, JWT auth, bcrypt hashing, Nodemailer, Zod validation, Multer file handling |
-| **Frontend** | React components, React Router, Axios interceptors, Bootstrap, Google Maps embed, FileReader API |
+| **Frontend** | React components, React Router, Axios interceptors, Bootstrap, Leaflet map embed, FileReader API |
 | **Security** | HttpOnly cookies, Cross-Origin Cookie management, reCAPTCHA v2, input validation, XSS prevention |
 | **Media Management** | Cloudinary CDN integration, profile picture upload/delete, image optimization, Multer middleware |
-| **Integrations** | REST Countries API, Google Maps API, Google reCAPTCHA, Resend/ SMTP email service, Cloudinary |
+| **Integrations** | REST Countries API, Google reCAPTCHA, Resend/ SMTP email service, Cloudinary |
 | **Database** | MongoDB schema design, Mongoose ODM, user data persistence, TTL for verification codes |
 | **DevOps** | Decoupled cross-origin cloud environments, Environment orchestration, CORS configuration |
 
@@ -165,7 +165,7 @@ flowchart TB
 
 ### 🗺️ Location & Maps
 - **Country Integration** – Dynamic country list parsed from REST Countries API.
-- **Live Map Preview** – Google Maps embed that auto-zooms to selected country coordinates.
+- **Live Map Preview** – Leaflet Maps embed that auto-zooms to selected country coordinates.
 - **Async Coordinate Fetching** – Country selection triggers background API call to update map viewport.
 
 ### 🎨 UI/UX Highlights
@@ -180,7 +180,7 @@ flowchart TB
 
 | Layer          | Technologies                                                                 |
 |----------------|------------------------------------------------------------------------------|
-| **Frontend**   | React 18, Vite, React Bootstrap, React Router, Axios, Google Maps API, FileReader API |
+| **Frontend**   | React 18, Vite, React Bootstrap, React Router, Axios, FileReader API |
 | **Backend**    | Node.js, Express 5, MongoDB (Mongoose 9), JWT, bcrypt, Zod, Resend, CORS, Multer |
 | **Media**      | Cloudinary CDN (image upload, storage, optimization)                         |
 | **Security**   | Google reCAPTCHA v2, httpOnly cookies, bcrypt hashing, input sanitization    |
@@ -228,7 +228,6 @@ VITE_REACT_APP_API_BASE_URL=https://backend-domain.onrender.com/api
 | Variable | Description |
 |----------|-------------|
 | `VITE_REACT_APP_RECAPTCHA_SITE_KEY` | Google reCAPTCHA public site key |
-| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps JavaScript API key |
 | `VITE_REACT_APP_API_BASE_URL` | Base production endpoint of the backend API |
 
 
@@ -293,7 +292,7 @@ VITE_REACT_APP_API_BASE_URL=https://backend-domain.onrender.com/api
 1. User provides email, username, password, and selects a country.
 2. Optionally uploads a profile picture (preview generated via FileReader).
 3. Country selection triggers REST Countries API to fetch coordinates.
-4. Google Maps viewport auto-updates to show the selected country.
+4. Leavlet Maps viewport auto-updates to show the selected country.
 5. Password undergoes bcrypt salting/hashing before storage.
 6. On success, default avatar is generated via UI Avatars API.
 7. JWT is issued via httpOnly cookie + JSON response.
