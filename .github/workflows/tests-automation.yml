@@ -26,6 +26,19 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+           ${{ runner.os }}-node-
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      
       - name: Install dependencies
         run: npm install
 
@@ -64,14 +77,14 @@ jobs:
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
 
-            # Extract failed tests lists safely using recursive scanning (..)
+            # Extract failed tests lists along with their target browser project
             if [ "$FAILED" -gt 0 ]; then
               echo "### 🚨 Failed Tests Details" >> $GITHUB_STEP_SUMMARY
               echo "The following tests failed during this run:" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
 
-              # Deep-scans the JSON file for any spec containing a test result status that wasn't 'expected'
-              jq -r '.. | .specs? // empty | .[] | select(.tests[].results[].status != "expected") | "* ❌ **" + .title + "** *(in `" + .file + "`)*"' results.json >> $GITHUB_STEP_SUMMARY
+              # Deep-scans the JSON file, filters for unexpected results, and formats with the project name
+              jq -r '.. | .specs? // empty | .[] | select(.tests[].results[].status != "expected") | .file as $file | .title as $title | .tests[] | select(.results[].status != "expected") | "* ❌ **" + $title + "** — 🌐 `🏼" + .projectName + "` *(in `" + $file + "`)*"' results.json >> $GITHUB_STEP_SUMMARY
               
               echo "" >> $GITHUB_STEP_SUMMARY
               echo "❌ Failing tests detected. Halting pipeline automation."
