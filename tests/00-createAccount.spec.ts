@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 
 test('create new account', async ({ page }) => {
   await page.goto('https://authentication-user-dashboard-app.onrender.com/signup');
-  await page.getByLabel('Select your Country').selectOption('Argentina');
+  await page.getByRole('button', { name: '-- Select country --' }).click();
+  await page.getByRole('button', { name: 'Albania flag Albania' }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
   await page.getByRole('textbox', { name: 'Confirm Password' }).click();
