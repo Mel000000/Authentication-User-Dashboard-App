@@ -103,3 +103,11 @@ jobs:
           target_branch: main
           title: 'Automated Merge from testing to main'
           body: 'This PR was automatically created by the Tests Automation workflow after successful tests.'
+
+      - name: Automatically Approve and Merge the PR
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GIT_TOKEN }} 
+        run: |
+          # Use GitHub CLI to find the PR created for this branch and merge it automatically
+          gh pr merge --auto --merge "testing"
