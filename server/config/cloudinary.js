@@ -41,4 +41,13 @@ const upload = multer({
   },
 });
 
-module.exports = { cloudinary, upload };
+const deleteImageFromCloudinary = async (publicId) => {
+  try {
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.error("Error deleting image from Cloudinary:", error);
+    throw error;
+  }
+};
+
+module.exports = { cloudinary, upload, deleteImageFromCloudinary };

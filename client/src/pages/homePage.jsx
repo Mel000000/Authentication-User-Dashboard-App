@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, logoutUser } from '../api/userApi';
+import { getCurrentUser, logoutUser, deleteUserAccount } from '../api/userApi';
 import { Container, Button, Card, Spinner, Row, Col, Image, Badge } from 'react-bootstrap';
 
 export default function Dashboard() {
@@ -38,6 +38,15 @@ export default function Dashboard() {
       navigate('/');
     } catch (err) {
       console.error('Logout error:', err);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteUserAccount(user?.email); // Pass the user's email to the API call
+      navigate('/');
+    } catch (err) {
+      console.error('Delete account error:', err);
     }
   };
 
@@ -162,27 +171,57 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <Button 
-                      variant="danger" 
-                      onClick={handleLogout}
-                      className="w-100 py-2 fw-bold"
-                      style={{ 
-                        borderRadius: '0.75rem',
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                        background: 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)',
-                        border: 'none'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 7px 14px rgba(229, 62, 62, 0.3)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    >
-                      Logout
-                    </Button>
+                    <Row className="g-3">
+                      <Col xs={12} md={6}>
+                      <Button 
+                        variant="danger" 
+                        onClick={handleLogout}
+                        className="w-100 py-2 fw-bold"
+                        style={{ 
+                          borderRadius: '0.75rem',
+                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                          background: 'linear-gradient(135deg, #6567f5 0%, #3e54e5 100%)',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 7px 14px rgba(229, 62, 62, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        Logout
+                      </Button>
+                      </Col>
+
+                      <Col xs={12} md={6}>
+                      <Button 
+                        variant="danger" 
+                        onClick={handleDeleteAccount}
+                        className="w-100 py-2 fw-bold"
+                        style={{ 
+                          borderRadius: '0.75rem',
+                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                          background: 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 7px 14px rgba(229, 62, 62, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        Delete Account
+                      </Button>
+                      
+                      </Col>
+                    </Row>
+                    
                   </Col>
                 </Row>
               </Card.Body>

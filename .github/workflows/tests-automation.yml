@@ -1,4 +1,3 @@
-# This workflow runs on every push to testing, runs the tests and if they pass, it merges the changes to main
 name: Tests Automation
 
 on:
@@ -24,14 +23,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'npm' # Automatically handles ~/.npm caching safely
+
+      - name: Cache Playwright Browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
+      # Installs OS system dependencies every run, but skips downloading the 
+      # actual browser binaries if they were found in our cache storage step.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-      
+
       - name: Run tests
         run: npx playwright test || true
         env:
@@ -44,7 +54,6 @@ jobs:
             PASSED=$(jq '.stats.expected' results.json)
             FAILED=$(jq '.stats.unexpected' results.json)
             SKIPPED=$(jq '.stats.skipped' results.json)
-            TOTAL=$(jq '.stats.suites' results.json)
 
             echo "### 📊 Test Suite Execution Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -63,18 +72,28 @@ jobs:
             echo "    \"Failed\" : $FAILED" >> $GITHUB_STEP_SUMMARY
             echo "    \"Skipped\" : $SKIPPED" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
 
-            # Force step failure if there were failing tests so the pipeline blocks the PR merge
+            # Extract failed tests lists along with their target browser project
             if [ "$FAILED" -gt 0 ]; then
+              echo "### 🚨 Failed Tests Details" >> $GITHUB_STEP_SUMMARY
+              echo "The following tests failed during this run:" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+
+              # Deep-scans the JSON file, filters for unexpected results, and formats with the project name
+              jq -r '.. | .specs? // empty | .[] | select(.tests[].results[].status != "expected") | .file as $file | .title as $title | .tests[] | select(.results[].status != "expected") | "* ❌ **" + $title + "** — 🌐 \`🏼" + .projectName + "\` *(in \`" + $file + "\`)*"' results.json >> $GITHUB_STEP_SUMMARY
+              
+              echo "" >> $GITHUB_STEP_SUMMARY
               echo "❌ Failing tests detected. Halting pipeline automation."
               exit 1
+            else
+              echo "### 🎉 All Tests Passed!" >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "⚠️ Could not locate results.json report file."
             exit 1
           fi
 
-        
       - name: Merge to main
         if: success()
         uses: devops-infra/action-pull-request@v1.1.1
@@ -84,3 +103,11 @@ jobs:
           target_branch: main
           title: 'Automated Merge from testing to main'
           body: 'This PR was automatically created by the Tests Automation workflow after successful tests.'
+
+      - name: Automatically Approve and Merge the PR
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GIT_TOKEN }} 
+        run: |
+          # Use GitHub CLI to find the PR created for this branch and merge it automatically
+          gh pr merge --auto --merge "testing"
