@@ -1,4 +1,3 @@
-# This workflow runs on every push to testing, runs the tests and if they pass, it merges the changes to main
 name: Tests Automation
 
 on:
@@ -24,27 +23,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'npm' # Automatically handles ~/.npm caching safely
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
+      - name: Cache Playwright Browsers
+        id: playwright-cache
+        uses: actions/cache@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-           ${{ runner.os }}-node-
-      
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      
+            ${{ runner.os }}-playwright-
+
       - name: Install dependencies
         run: npm install
 
+      # Installs OS system dependencies every run, but skips downloading the 
+      # actual browser binaries if they were found in our cache storage step.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-      
+
       - name: Run tests
         run: npx playwright test || true
         env:
@@ -84,7 +81,7 @@ jobs:
               echo "" >> $GITHUB_STEP_SUMMARY
 
               # Deep-scans the JSON file, filters for unexpected results, and formats with the project name
-              jq -r '.. | .specs? // empty | .[] | select(.tests[].results[].status != "expected") | .file as $file | .title as $title | .tests[] | select(.results[].status != "expected") | "* ❌ **" + $title + "** — 🌐 `🏼" + .projectName + "` *(in `" + $file + "`)*"' results.json >> $GITHUB_STEP_SUMMARY
+              jq -r '.. | .specs? // empty | .[] | select(.tests[].results[].status != "expected") | .file as $file | .title as $title | .tests[] | select(.results[].status != "expected") | "* ❌ **" + $title + "** — 🌐 \`🏼" + .projectName + "\` *(in \`" + $file + "\`)*"' results.json >> $GITHUB_STEP_SUMMARY
               
               echo "" >> $GITHUB_STEP_SUMMARY
               echo "❌ Failing tests detected. Halting pipeline automation."
@@ -97,7 +94,6 @@ jobs:
             exit 1
           fi
 
-        
       - name: Merge to main
         if: success()
         uses: devops-infra/action-pull-request@v1.1.1
