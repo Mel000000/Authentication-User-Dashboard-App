@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { createUserSchema } = require("../models/userZSchema");
 const auth = require("../middleware/auth");
+const {deleteImageFromCloudinary} = require("../config/cloudinary");
 
 const router = express.Router();
 
@@ -190,6 +191,38 @@ router.post("/loginUser", async (req, res) => {
     res.status(500).json({ error: "Failed to login user" });
   }
 
+});
+
+router.delete("/delete", auth, async (req, res) => {
+  try {
+    const email = req.body.email;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const userToDelete = await User.findOne({ email });
+    if (!userToDelete) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (userToDelete.profileImagePublicId) {
+      try {
+        await deleteImageFromCloudinary(userToDelete.profileImagePublicId);
+      } catch (cloudinaryError) {
+        console.error("Error deleting profile image from Cloudinary:", cloudinaryError);
+      }
+    }
+
+    await User.deleteOne({ _id: userToDelete._id });
+
+    return res.status(200).json({ message: "User account deleted successfully" });
+
+  } catch (err) {
+    console.error("Error deleting user account:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Failed to delete user account" });
+    }
+  }
 });
 
 module.exports = router;
