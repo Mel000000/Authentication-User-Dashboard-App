@@ -22,3 +22,13 @@ export const getCountryNameList = async () => {
     throw error;
   }
 };
+
+export const getCountryFlag = async (countryName) => {
+  try {
+    const res = await apiClient.get(`/country/flag/${countryName}`);
+    return res.data.flagUrl;
+  } catch (error) {
+    console.error(`Error fetching flag for ${countryName}:`, error);
+    return null; // Return null if there's an error fetching the flag
+  }
+};
