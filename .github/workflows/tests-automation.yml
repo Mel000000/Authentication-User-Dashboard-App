@@ -64,10 +64,20 @@ jobs:
             echo "    \"Skipped\" : $SKIPPED" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-            # Force step failure if there were failing tests so the pipeline blocks the PR merge
+            # Extract failed tests lists
             if [ "$FAILED" -gt 0 ]; then
+              echo "### 🚨 Failed Tests Details" >> $GITHUB_STEP_SUMMARY
+              echo "The following tests failed during this run:" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+
+              # This jq query navigates down to every spec file and extracts test names where status isn't "expected"
+              jq -r '.suites[].specs[] | select(.tests[].results[].status == "unexpected") | "* **" + .title + "** *(in `" + .file + "`)*"' results.json >> $GITHUB_STEP_SUMMARY
+              
+              echo "" >> $GITHUB_STEP_SUMMARY
               echo "❌ Failing tests detected. Halting pipeline automation."
               exit 1
+            else
+              echo "### 🎉 All Tests Passed!" >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "⚠️ Could not locate results.json report file."
