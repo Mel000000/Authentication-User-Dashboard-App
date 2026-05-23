@@ -23,4 +23,15 @@ router.get("/:value", async (req, res) => {
     }
 });
 
+// Return flag URL for a given country name
+router.get("/flag/:countryName", async (req, res) => {
+    try {
+        const apiEndpointRes = await axios.get("https://restcountries.com/v3.1/name/" + req.params.countryName);
+        const flagUrl = apiEndpointRes.data[0].flags && apiEndpointRes.data[0].flags.png ? apiEndpointRes.data[0].flags.png : null;
+        res.send({ flagUrl });
+    } catch (error) {
+        res.status(500).send("Error fetching country flag");
+    }
+});
+
 module.exports = router;
