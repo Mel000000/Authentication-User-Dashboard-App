@@ -17,7 +17,6 @@ export const loginUser = async (loginData) => {
     return res.data;
   } catch (error) {
     console.error("Error logging in user:", error);
-    alert("Login failed. Please check your credentials and try again.");
     throw error;
   }
 };

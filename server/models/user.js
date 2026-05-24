@@ -4,9 +4,9 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   email_verified : { type: Boolean, default: false },
-  password: { type: String, required: true },
-  username: { type: String, required: true },
-  country: { type: String, required: true },
+  password: { type: String},
+  username: { type: String},
+  country: { type: String},
   profileImageUrl: {
     type: String,
     default: 'https://i.pravatar.cc/150'

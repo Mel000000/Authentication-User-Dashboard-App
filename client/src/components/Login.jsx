@@ -5,6 +5,8 @@ import Form from 'react-bootstrap/Form';
 import RecaptchaComponent from './RecaptchaComponent.jsx';
 import { loginUser, getCurrentUser } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
     const navigate = useNavigate();
@@ -25,14 +27,23 @@ function Login() {
                 localStorage.setItem("authToken", data.token);
                 
                 const userProfile = await getCurrentUser(data.token);
-                
-                navigate("/home");
+                toast.success("Login successful! Redirecting to your dashboard...", {
+                    position: "top-right",
+                    autoClose: 3000,
+                });
+                setTimeout(() => {
+                    navigate("/home");
+                }, 1500);
             } else {
                 console.error("Backend authenticated you, but didn't return a 'token' property in the JSON body.");
             }
         }
         catch (error) {
             console.error("Login error:", error);
+            toast.error("Login failed. Please check your credentials and try again.", {
+                position: "top-right",
+                autoClose: 3000,
+            });
         }   
     }
 
@@ -105,6 +116,7 @@ function Login() {
                     </Button>
                 </Form>
             </Card.Body>
+            <ToastContainer />
         </Card>
     );
 }

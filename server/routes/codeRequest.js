@@ -1,105 +1,131 @@
 const express = require("express");
 const generator = require("generate-password");
-const {sendMail} = require("../controllers/emailSender.js");
+const { sendMail } = require("../controllers/emailSender.js");
 const User = require("../models/user");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-
 // Endpoint to request a verification code
 router.post("/", async (req, res) => {
-  const { email } = req.body;
-  const code = generator.generate({
-    length: 6,
-    numbers: true,
-  });
-  const hashedCode = await bcrypt.hash(code, 10)
+  const { email, mode } = req.body;
 
   if (!email) return res.status(400).send("Email is required");
 
   try {
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).send("User not found");
+    const code = generator.generate({ length: 6, numbers: true, lowercase: false, uppercase: false });
+    const hashedCode = await bcrypt.hash(code, 10);
+    const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    if (mode === "signup") {
+      if (user && user.email_verified) {
+        return res.status(400).send("Email already in use and verified");
+      }
+
+      // If an unverified placeholder exists, update it; otherwise create one
+      if (user) {
+        user.verifyCode = hashedCode;
+        user.verifyCodeExpires = expires;
+        await user.save();
+      } else {
+        await new User({
+        email,
+        verifyCode: hashedCode,
+        verifyCodeExpires: expires,
+        email_verified: false,       
+        }).save();
+      }
+    } else {
+      // Reset mode
+      if (!user) return res.status(404).send("User not found");
+
+      user.verifyCode = hashedCode;
+      user.verifyCodeExpires = expires;
+      await user.save();
     }
-    user.verifyCode = hashedCode;
-    user.verifyCodeExpires = new Date(Date.now() + 10*60*1000); // Set expiration time to 10 minutes from now
-    await user.save();
-    await sendMail(email,code);
-    res.status(200).send("Verification email sent");
+
+    await sendMail(email, code);
+    return res.status(200).send("Verification email sent");
+
   } catch (err) {
     console.error("Mail error:", err);
-    res.status(500).send("Failed to send email");
+    return res.status(500).send("Failed to send email");
   }
 });
 
 // Endpoint to verify the code
-router.post("/verifyCode",async (req,res) => {
-    const {email, userCode } = req.body;
+router.post("/verifyCode", async (req, res) => {
+  const { email, userCode, mode } = req.body;
 
-    if (!email || !userCode) {
-        return res.status(400).send("Email and code are required");
-    }
+  if (!email || !userCode) {
+    return res.status(400).send("Email and code are required");
+  }
+
+  try {
     const user = await User.findOne({ email });
-    if (!user) {
-        return res.status(404).send("User not found");
-    }
+    if (!user) return res.status(404).send("User not found or verification session expired");
+
     if (user.verifyCodeExpires < new Date()) {
-        return res.status(400).send("Code expired. Request a new one.");
+      return res.status(400).send("Code expired. Request a new one.");
     }
 
     const isMatch = await bcrypt.compare(userCode, user.verifyCode);
-    if (isMatch) {
-        const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
-        user.verifyCode = null; // Clear the verification code after successful verification
-        await user.save();
-        res.json({ resetToken });
-        //res.status(200).send("Code verified successfully");
-    } else {
-        res.status(400).send("Invalid code");
-    }
-})
-
-router.post("/resetPassword", async (req, res) => {
-    const { email, newPassword } = req.body;
-    const resetToken = req.query.token;
-    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-
-    if (!decoded){
-        return res.status(400).json({ error: "Invalid or expired reset token" });
+    if (!isMatch) {
+      return res.status(400).send("Invalid code");
     }
 
-    // Validate input
-    if (!email || !newPassword) {
-        return res.status(400).json({ error: "Email, new password, and reset token are required" });
+    if (mode === "signup") {
+      // FIX: flip email_verified to true here so createUser upsert works correctly
+      user.email_verified = true;
+      user.verifyCode = null;
+      user.verifyCodeExpires = null;
+      await user.save();
+      return res.status(200).send("Code verified successfully");
     }
-    
-    // Validate password strength (add your requirements)
-    if (newPassword.length < 6) {
-        return res.status(400).json({ error: "Password must be at least 6 characters" });
+
+    if (mode === "reset") {
+      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+      user.verifyCode = null;
+      user.verifyCodeExpires = null;
+      await user.save();
+      return res.json({ resetToken });
     }
-    
-    try {
-        const user = await User.findOne({ email });
-        
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        
-        const bcrypt = require('bcrypt');
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-        
-        user.password = hashedPassword;
-        await user.save();
-        
-        res.status(200).json({ message: "Password reset successfully" });
-        
-    } catch (error) {
-        console.error("Error resetting password:", error);
-        res.status(500).json({ error: "Failed to reset password" });
-    }
+
+    return res.status(400).send("Unknown mode");
+  } catch (err) {
+    console.error("Verification error:", err);
+    return res.status(500).send("Internal server error during verification");
+  }
 });
 
-module.exports = router;  
+// Reset password endpoint
+router.post("/resetPassword", async (req, res) => {
+  const { email, newPassword } = req.body;
+  const resetToken = req.query.token;
+
+  // FIX: validate inputs before verifying token so we fail fast on bad payloads
+  if (!email || !newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: "Invalid payload input rules" });
+  }
+
+  try {
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    if (!decoded || decoded.email !== email) {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    return res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+
+module.exports = router;

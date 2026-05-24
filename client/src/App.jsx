@@ -10,6 +10,7 @@ import ForgotPasswordPage from './pages/forgotPasswordPage.jsx';
 import HomePage from './pages/homePage.jsx';
 import LoginPage from './pages/loginPage.jsx';
 import ResetPasswordPage from './pages/resetPasswordPage.jsx';
+import VerifyEmailPage from './pages/verifyEmailPage.jsx';
 
 
 const router = createBrowserRouter([
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "/reset-password",
     element: <ResetPasswordPage />
+  },
+  {
+    path: "/verify-email",
+    element: <VerifyEmailPage />
   },
   {
     path: "/home",

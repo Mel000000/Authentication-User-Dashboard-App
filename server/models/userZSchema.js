@@ -1,5 +1,4 @@
 const { z } = require("zod");
-const { create } = require("./user");
 
 const createUserSchema = z.object({
   email: z.string().email(),
