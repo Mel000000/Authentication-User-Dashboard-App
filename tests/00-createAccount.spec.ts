@@ -3,8 +3,6 @@ import { test, expect } from '@playwright/test';
 
 test('create new account', async ({ page }) => {
   await page.goto('https://authentication-user-dashboard-app.onrender.com/signup');
-  await page.getByRole('button', { name: '-- Select country --' }).click();
-  await page.getByRole('button', { name: 'Albania flag Albania' }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
   await page.getByRole('textbox', { name: 'Confirm Password' }).click();
@@ -14,6 +12,8 @@ test('create new account', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Email Address' }).click();
   await page.getByRole('textbox', { name: 'Email Address' }).fill('test@gmail.com');
   await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
+  await page.getByRole('button', { name: '-- Select country --' }).click();
+  await page.getByRole('button', { name: 'Albania flag Albania' }).click();
   await page.getByRole('button', { name: 'Create Account' }).click();
   await page.waitForTimeout(1000);
   if  (await page.getByText('User created successfully!').isVisible()) {

@@ -1,16 +1,16 @@
 import SharedPageContainer from '../components/pageContainer';
-import Login from '../components/Login';
+import VerifyCard from "../components/VerifyCard";
 
-export default function LoginPage() {
+export default function VerifyEmailPage() {
     return (
         <SharedPageContainer 
             showLinks={true}
             links={[
-                { href: "/forgot-password", text: "Forgot Password?"},
+                { href: "/", text: "Back to Login" },
                 { href: "/signup", text: "Create new Account?" }
             ]}
         >
-            <Login />
+            <VerifyCard title="Verify Email" buttonText="Verify" />
         </SharedPageContainer>
     );
 }

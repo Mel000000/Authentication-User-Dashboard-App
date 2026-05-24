@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser, logoutUser, deleteUserAccount } from '../api/userApi';
 import { Container, Button, Card, Spinner, Row, Col, Image, Badge } from 'react-bootstrap';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -35,18 +37,38 @@ export default function Dashboard() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-      navigate('/');
+      toast.success("Logged out successfully! Redirecting to login page...", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (err) {
       console.error('Logout error:', err);
+      toast.error("Failed to logout. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
   const handleDeleteAccount = async () => {
     try {
       await deleteUserAccount(user?.email); // Pass the user's email to the API call
-      navigate('/');
+      toast.success("Account deleted successfully! Redirecting to login page...", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (err) {
       console.error('Delete account error:', err);
+      toast.error("Failed to delete account. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -228,6 +250,7 @@ export default function Dashboard() {
             </Card>
           </Col>
         </Row>
+        <ToastContainer />
       </Container>
   );
 }

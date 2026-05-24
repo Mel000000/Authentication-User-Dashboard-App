@@ -1,5 +1,5 @@
 import SharedPageContainer from '../components/pageContainer';
-import ReqResetCard from "../components/ReqResetCard";
+import VerifyCard from "../components/VerifyCard";
 
 export default function ForgotPasswordPage() {
     return (
@@ -10,7 +10,7 @@ export default function ForgotPasswordPage() {
                 { href: "/signup", text: "Create new Account?" }
             ]}
         >
-            <ReqResetCard />
+            <VerifyCard title="Forgot Password?" buttonText="Verify & Reset" />
         </SharedPageContainer>
     );
 }

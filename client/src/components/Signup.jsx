@@ -12,6 +12,8 @@ import AccountFields from './AccountFields';
 import CountrySelector from './CountrySelector';
 import { getCountryLoc } from '../api/countryApi';
 import { createUser } from '../api/userApi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import apiClient from '../api/apiClient';
 
 function Signup() {
@@ -60,56 +62,41 @@ function Signup() {
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        if (!validForm || loading) return;
-        
-        setLoading(true);
-        
-        try {
-            // create the user account in backend
-            const userData = { email, password, username, country };
-            const response = await createUser(userData);
-            // if user creation was successful, try uploading the profile image (if it's not the default)
-            if (response) {
-                if (profileImageFile && profileImage !== defaultProfilePic) {
-                    const formData = new FormData();
-                    formData.append('profileImage', profileImageFile); // Use the file, not the preview URL
-                    try{
-                        await apiClient.post('/profile/upload-profile-image', formData, {
-                        headers: { 'Content-Type': 'multipart/form-data' },
-                        });
-                    }catch (error) {
-                        console.warn("Avatar upload failed, but account created:", error);
-                        alert("Account created, but profile picture could not be uploaded. You can retry later.");
-                    }
-                    
-                }
-                
-                alert("User created successfully!");
-                navigate('/');
-            }
-        } catch (error) {
-            console.error("Error creating user:", error);
-            alert(error.response?.data?.error || "We could not create your account. Please try again.");
-        } finally {
-            setLoading(false);
+        if (!validForm || loading || submitted) {
+            toast.error("Please fill out all fields correctly.");
+            return;
         }
+        
+        // Redirect to the verification card route, sending signup data downstream
+        navigate('/verify-email', { 
+            state: { 
+                email, 
+                username, 
+                password, 
+                country, 
+                profileImage, 
+                profileImageFile,  
+                submitForVerifyEmail: true,
+                title: "Verify Your Email",
+                buttonText: "Complete Registration"
+            } 
+        });
     };
 
     return (
-        <Card className="shadow-lg border-0" style={{ 
-            width: 'min(70rem, 95vw)', 
-            borderRadius: '1.5rem', 
-            overflow: 'hidden' 
-        }}>
+        <Card 
+            className="rounded-2xl overflow-hidden shadow-lg border-0 mx-auto my-4 sm:my-8" 
+            style={{ width: 'min(70rem, 95vw)' }} 
+        >
             
             <Card.Body className="p-0">
-                <div style={{ padding: '2rem', borderBottom: '1px solid #e9ecef' }}>
+                <div className="p-4 sm:p-6 md:p-8" style={{ borderBottom: '1px solid #e9ecef' }}>
                     <h2 style={{ color: '#2d3748', margin: 0 }}>Create New Account</h2>
                     <p className="text-muted mt-2 mb-0">Join our community today</p>
                 </div>
                 
                 <Form onSubmit={onSubmit}>
-                    <Container fluid className="p-4">
+                    <Container fluid className="p-4 sm:p-6 md:p-8">
                         <Row>
                             <Col md={6}>
                                 <div className="text-center mb-3">
@@ -163,14 +150,14 @@ function Signup() {
                                 />
                                 
 
-                                <Form.Group className="mb-3 mt-5" controlId="formSignupMap">
+                                <Form.Group className="mt-4 lg:mt-5" controlId="formSignupMap">
                                     <SignupMap x={x} y={y} zoom={zoom} country={country} />
                                 </Form.Group>
                             </Col>
                         </Row>
                     </Container>
                     
-                    <div style={{ padding: '1.5rem 2rem', background: '#f8f9fa', borderTop: '1px solid #e9ecef' }}>
+                    <div className="py-3 px-4 sm:py-4 sm:px-6 md:py-5 md:px-8" style={{ background: '#f8f9fa', borderTop: '1px solid #e9ecef' }}>
                         <Button 
                             variant="primary" 
                             type="submit" 
@@ -197,6 +184,7 @@ function Signup() {
                     </div>
                 </Form>
             </Card.Body>
+            <ToastContainer />
         </Card>
     );
 }

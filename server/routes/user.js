@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { createUserSchema } = require("../models/userZSchema");
 const auth = require("../middleware/auth");
-const {deleteImageFromCloudinary} = require("../config/cloudinary");
+const { deleteImageFromCloudinary } = require("../config/cloudinary");
 
 const router = express.Router();
 
@@ -13,11 +13,9 @@ const router = express.Router();
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('-password');
-    
     if (!user) {
       return res.status(401).json({ error: "User not found" });
     }
-    
     res.json(user);
   } catch (err) {
     console.error("Auth error inside /me route:", err);
@@ -27,15 +25,15 @@ router.get("/me", auth, async (req, res) => {
 
 // Logout endpoint
 router.post("/logout", (req, res) => {
-  res.clearCookie("token",{
+  res.clearCookie("token", {
     httpOnly: true,
-    secure: true, // Set to true in production (requires HTTPS)
+    secure: true,
     sameSite: 'none'
   });
   res.json({ message: "Logged out successfully" });
 });
 
-// Endpoint to create a new user
+// Endpoint to create / complete a new user after email verification
 router.post("/createUser", async (req, res) => {
   const parsed = createUserSchema.safeParse(req.body);
 
@@ -44,49 +42,66 @@ router.post("/createUser", async (req, res) => {
     return res.status(400).json({ error: "Invalid input", details: parsed.error.errors });
   }
 
-  try{
+  try {
     const existingUser = await User.findOne({ email: parsed.data.email });
-    if (existingUser) {
+
+    // FIX: block only if a *verified* user already exists (not the placeholder we created)
+    if (existingUser && existingUser.email_verified && existingUser.password) {
       return res.status(400).json({ error: "Email already in use" });
     }
- 
+
     const hashedPassword = await bcrypt.hash(parsed.data.password, 10);
     const imageUrl = `https://ui-avatars.com/api/?background=667eea&color=fff&rounded=true&size=150&bold=true&name=${encodeURIComponent(parsed.data.username)}`;
-    const newUserData = {
-      email: parsed.data.email,
-      email_verified: true, // For demo purposes, we set this to true. In a real app, you'd want to handle email verification properly.
-      password: hashedPassword,
-      username: parsed.data.username,
-      country: parsed.data.country,
-      profileImageUrl: imageUrl,
-      profileImagePublicId: null, // No Cloudinary public ID for default avatars
-    };
 
-    const newUser = new User(newUserData);
-    await newUser.save();
+    let user;
+    if (existingUser) {
+      // FIX: upsert — fill in the placeholder row created during code-send
+      existingUser.password = hashedPassword;
+      existingUser.username = parsed.data.username;
+      existingUser.country = parsed.data.country;
+      existingUser.profileImageUrl = imageUrl;
+      existingUser.profileImagePublicId = null;
+      // email_verified was already set to true by the verifyCode route
+      user = existingUser;
+    } else {
+      // Fallback: create fresh (e.g. if placeholder was somehow lost)
+      user = new User({
+        email: parsed.data.email,
+        email_verified: true,
+        password: hashedPassword,
+        username: parsed.data.username,
+        country: parsed.data.country,
+        profileImageUrl: imageUrl,
+        profileImagePublicId: null,
+      });
+    }
+
+    await user.save();
 
     const jwtToken = jwt.sign(
-      { userId: newUser._id, email: newUser.email, username: newUser.username },
+      { userId: user._id, email: user.email, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+
     res.cookie('token', jwtToken, {
       httpOnly: true,
-      secure: true, // Set to true in production (requires HTTPS)
+      secure: true,
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     const userResponse = {
-      id: newUser._id,
-      email: newUser.email,
-      username: newUser.username,
-      country: newUser.country,
-      profileImageUrl: newUser.profileImageUrl,
-      createdAt: newUser.createdAt
+      id: user._id,
+      email: user.email,
+      username: user.username,
+      country: user.country,
+      profileImageUrl: user.profileImageUrl,
+      createdAt: user.createdAt
     };
-    res.status(201).json({ 
-      message: "User created successfully" ,
+
+    res.status(201).json({
+      message: "User created successfully",
       token: jwtToken,
       user: userResponse
     });
@@ -97,7 +112,7 @@ router.post("/createUser", async (req, res) => {
 });
 
 async function verifyCaptcha(token) {
-   if (!token || typeof token !== 'string' || token.length < 20) {
+  if (!token || typeof token !== 'string' || token.length < 20) {
     return false;
   }
 
@@ -110,10 +125,10 @@ async function verifyCaptcha(token) {
           secret: process.env.CAPTCHA_SECRET,
           response: token
         },
-        timeout: 10000 // 10 second timeout
+        timeout: 10000
       }
     );
-    
+
     if (response.data.success === true) {
       return true;
     } else {
@@ -128,10 +143,11 @@ async function verifyCaptcha(token) {
 
 router.post("/loginUser", async (req, res) => {
   const { email, password, token: captchaToken } = req.body;
-  
+
   if (!email || !password) {
     return res.status(400).json({ error: "Email and password are required" });
   }
+
   const isCaptchaValid = await verifyCaptcha(captchaToken);
   if (!isCaptchaValid) {
     return res.status(400).json({ error: "CAPTCHA verification failed" });
@@ -158,19 +174,13 @@ router.post("/loginUser", async (req, res) => {
       username: user.username
     };
 
-    // Sign the token
-    const jwtToken = jwt.sign(
-      payload, 
-      process.env.JWT_SECRET, 
-      { expiresIn: "7d" } // Token expires in 7 days
-    );
+    const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    // Set httpOnly cookie
     res.cookie("token", jwtToken, {
-      httpOnly: true,     
-      secure: true, 
-      sameSite: "none",    // Set to 'none' for cross-site cookies (required for secure cookies in modern browsers)
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days 
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     const userResponse = {
@@ -181,16 +191,15 @@ router.post("/loginUser", async (req, res) => {
       email_verified: user.email_verified
     };
 
-    res.status(200).json({ 
-      message: "Login successful", 
+    res.status(200).json({
+      message: "Login successful",
       token: jwtToken,
-      user: userResponse 
+      user: userResponse
     });
   } catch (err) {
     console.error("Error logging in user:", err);
     res.status(500).json({ error: "Failed to login user" });
   }
-
 });
 
 router.delete("/delete", auth, async (req, res) => {
@@ -198,6 +207,9 @@ router.delete("/delete", auth, async (req, res) => {
     const email = req.body.email;
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
+    }
+    if (auth.user.email !== email) {
+      return res.status(403).json({ error: "You can only delete your own account" });
     }
 
     const userToDelete = await User.findOne({ email });
@@ -216,7 +228,6 @@ router.delete("/delete", auth, async (req, res) => {
     await User.deleteOne({ _id: userToDelete._id });
 
     return res.status(200).json({ message: "User account deleted successfully" });
-
   } catch (err) {
     console.error("Error deleting user account:", err);
     if (!res.headersSent) {
