@@ -42,9 +42,9 @@ A full‑stack authentication and user dashboard application built with **Node.j
 
 This application implements a secure authentication system with:
 
-- User signup & login
+- User signup with **email verification** (6-digit code, 10-minute TTL)
 - CAPTCHA‑protected login
-- Password reset via email code
+- Password reset via email verification code
 - **Profile image upload** with Cloudinary CDN storage
 - **Cross-Domain Adaptive Auth:** JWT strategies parsing both `HttpOnly Cookies` (SameSite: None) and dynamic fallback `Authorization headers`
 - Protected user dashboard with profile management
@@ -80,9 +80,9 @@ This project is a **portfolio centerpiece** showcasing my full‑stack capabilit
 |------|---------------------|
 | **Backend** | Express REST API, JWT auth, bcrypt hashing, Nodemailer, Zod validation, Multer file handling |
 | **Frontend** | React components, React Router, Axios interceptors, Bootstrap, Leaflet map embed, FileReader API |
-| **Security** | HttpOnly cookies, Cross-Origin Cookie management, reCAPTCHA v2, input validation, XSS prevention |
+| **Security** | HttpOnly cookies, Cross-Origin Cookie management, reCAPTCHA v2, email verification with bcrypt-hashed time-limited codes, input validation, XSS prevention |
 | **Media Management** | Cloudinary CDN integration, profile picture upload/delete, image optimization, Multer middleware |
-| **Integrations** | REST Countries API, Google reCAPTCHA, Resend/ SMTP email service, Cloudinary |
+| **Integrations** | REST Countries API, Google reCAPTCHA, Resend / SMTP email service, Cloudinary |
 | **Database** | MongoDB schema design, Mongoose ODM, user data persistence, TTL for verification codes |
 | **DevOps** | Decoupled cross-origin cloud environments, Environment orchestration, CORS configuration |
 
@@ -90,11 +90,12 @@ This project is a **portfolio centerpiece** showcasing my full‑stack capabilit
 
 ## Usage Example
 
-1. **Sign up** – Enter your details, upload a profile picture (optional), choose a country, and watch the map auto‑zoom to your selection.
-2. **Log in** – Solve the reCAPTCHA, receive a secure session handshake via `httpOnly` cookie.
-3. **Dashboard** – View your complete profile including email, username, country, join date, and profile image.
-4. **Reset your password** – Receive a 6‑digit verification code by email to securely reset your password.
-5. **Update profile** – Change your profile picture (upload new or delete existing).
+1. **Sign up** – Enter your details, upload a profile picture (optional), and choose a country — the map auto‑zooms to your selection.
+2. **Verify your email** – A 6-digit code is sent to your inbox. Enter it to confirm your address before your account is created.
+3. **Log in** – Solve the reCAPTCHA, receive a secure session handshake via `httpOnly` cookie.
+4. **Dashboard** – View your complete profile including email, username, country, join date, and profile image.
+5. **Reset your password** – Request a 6‑digit verification code by email, verify it, then set a new password.
+6. **Update profile** – Change your profile picture (upload new or delete existing).
 
 ---
 
@@ -131,7 +132,6 @@ flowchart TB
     subgraph External["🌐 External APIs"]
         J["Google reCAPTCHA"]
         K["REST Countries API"]
-        L["Google Maps API"]
         M["Resend Email API"]
     end
 
@@ -140,7 +140,6 @@ flowchart TB
     Server -->|Upload/Delete| I
     Server -->|Verify Token| J
     Server -->|Fetch Countries| K
-    Client -->|Direct Embed| L
     Server -->|Send Emails| M
 
     style Client fill:#6366F1,color:#fff,stroke:#333,stroke-width:1px
@@ -153,6 +152,7 @@ flowchart TB
 
 ### 🔐 Authentication & Security
 - **Adaptive Core Authentication** – Password hashing (bcrypt), multi-channel JWT evaluation via HttpOnly cookie extraction alongside synchronous Authorization: Bearer extraction.
+- **Email Verification** – 6-digit code sent via Resend API on signup. Codes are bcrypt-hashed server-side and expire after 10 minutes. Unverified accounts cannot log in.
 - **CAPTCHA Protection** – Google reCAPTCHA v2 on login to prevent automated brute-force scripts.
 - **Dual-Channel Session Handshake** – Server stores JWT in encrypted httpOnly cookie while simultaneously returning it in JSON response for flexible client handling.
 - **Server‑Side Validation** – Robust input scrubbing using runtime Zod schemas with detailed error messages.
@@ -275,7 +275,7 @@ VITE_REACT_APP_API_BASE_URL=https://backend-domain.onrender.com/api
 │   ├── routes/                           # API route handlers
 │   │   ├── user.js                        # Signup, login, logout, /me
 │   │   ├── country.js                     # Country list and coordinates
-│   │   ├── codeRequest.js                 # Password reset flow
+│   │   ├── codeRequest.js                 # Email verification & password reset flow
 │   │   └── profileImage.js                # Cloudinary upload/delete
 │   ├── controllers/                      # Business logic
 │   │   └── emailSender.js                 # Resend email integration
@@ -288,23 +288,25 @@ VITE_REACT_APP_API_BASE_URL=https://backend-domain.onrender.com/api
 ## Authentication Flows
 
 
-### Signup
+### Signup & Email Verification
 1. User provides email, username, password, and selects a country.
 2. Optionally uploads a profile picture (preview generated via FileReader).
-3. Country selection triggers REST Countries API to fetch coordinates.
-4. Leavlet Maps viewport auto-updates to show the selected country.
-5. Password undergoes bcrypt salting/hashing before storage.
-6. On success, default avatar is generated via UI Avatars API.
-7. JWT is issued via httpOnly cookie + JSON response.
-8. User is redirected to dashboard.
+3. Country selection triggers REST Countries API to fetch coordinates and update the map viewport.
+4. On submit, a 6-digit verification code is generated, **bcrypt-hashed**, and stored with a **10-minute TTL**.
+5. Code is sent to the user's email via Resend API.
+6. User enters the code on the verification screen — server validates the hash and flips `email_verified` to `true`.
+7. Account is fully created: password is bcrypt-hashed, default avatar generated via UI Avatars API.
+8. If a profile image was selected, it is uploaded to Cloudinary via multipart/form-data.
+9. JWT is issued via httpOnly cookie + JSON response. User is redirected to dashboard.
 
 ### Login & Handshake
 1. User supplies email + password + solves reCAPTCHA v2.
 2. Server validates reCAPTCHA token with Google's API.
-3. Credentials verified against bcrypt-hashed password in MongoDB.
-4. **Dual Channel Handshake:** Server stores JWT inside encrypted httpOnly cookie (secure, SameSite=None) while simultaneously returning token via JSON response.
-5. Frontend stores token in localStorage as fallback for API calls.
-6. Axios interceptor automatically adds Authorization: Bearer <token> header when cookie is unavailable.
+3. Unverified accounts (`email_verified: false`) are rejected with a `403`.
+4. Credentials verified against bcrypt-hashed password in MongoDB.
+5. **Dual Channel Handshake:** Server stores JWT inside encrypted httpOnly cookie (secure, SameSite=None) while simultaneously returning token via JSON response.
+6. Frontend stores token in localStorage as fallback for API calls.
+7. Axios interceptor automatically adds `Authorization: Bearer <token>` header when cookie is unavailable.
 
 ### Profile Image Management
 1. User clicks on profile image area in signup form.
@@ -313,15 +315,15 @@ VITE_REACT_APP_API_BASE_URL=https://backend-domain.onrender.com/api
 4. On form submission, image is uploaded separately via multipart/form-data.
 5. Backend validates file type/size using Multer.
 6. Image uploaded to Cloudinary with automatic optimization (webp conversion, 500x500 limit).
-7. Old profile image (if exists) is deleted from Cloudinary.
-8. User can delete image, reverting to auto-generated UI Avatar.
+7. Old profile image (if exists) is deleted from Cloudinary before the new one is stored.
+8. User can delete image at any time, reverting to an auto-generated UI Avatar.
 
 ### Password Reset
 1. User requests password reset with email address.
-2. Server generates 6-digit code, hashes it with bcrypt, stores with 10-minute TTL.
+2. Server generates 6-digit code, **bcrypt-hashes** it, stores with **10-minute TTL**.
 3. Code sent via Resend email API to user's inbox.
 4. User enters 6-digit code on verification screen.
-5. Server validates code and issues time-limited JWT reset token.
+5. Server validates code and issues a time-limited JWT reset token (15-minute expiry).
 6. User sets new password, which is bcrypt-hashed and saved.
 7. Verification code is cleared from database.
 
@@ -333,14 +335,15 @@ VITE_REACT_APP_API_BASE_URL=https://backend-domain.onrender.com/api
 
 | Method | Endpoint                           | Description                              | Auth Required |
 |--------|------------------------------------|------------------------------------------|---------------|
-| POST   | `/api/user/createUser`             | Register new user                        | No            |
+| POST   | `/api/user/createUser`             | Complete registration after verification | No            |
 | POST   | `/api/user/loginUser`              | Login + reCAPTCHA validation             | No            |
 | GET    | `/api/user/me`                     | Get profile (Cookie / Header)            | **Yes**       |
 | POST   | `/api/user/logout`                 | Clear session & cookie                   | **Yes**       |
+| DELETE | `/api/user/delete`                 | Permanently delete account               | **Yes**       |
 | POST   | `/api/profile/upload-profile-image`| Upload profile image to Cloudinary       | **Yes**       |
 | DELETE | `/api/profile/delete-profile-image`| Delete profile image                     | **Yes**       |
-| POST   | `/api/codeRequest`                 | Request password reset code              | No            |
-| POST   | `/api/codeRequest/verifyCode`      | Validate reset code, get reset token     | No            |
+| POST   | `/api/codeRequest`                 | Send verification code (signup or reset) | No            |
+| POST   | `/api/codeRequest/verifyCode`      | Validate code, get reset token or verify email | No     |
 | POST   | `/api/codeRequest/resetPassword`   | Set new password with reset token        | No (token)    |
 | GET    | `/api/country/all`                 | Get all country names                    | No            |
 | GET    | `/api/country/:value`              | Get lat/lng coordinates for country      | No            |
@@ -352,7 +355,6 @@ VITE_REACT_APP_API_BASE_URL=https://backend-domain.onrender.com/api
 
 - [ ] Add rate-limiting middleware for authentication routes (express-rate-limit)
 - [ ] Migrate verification codes from MongoDB to Redis with TTL
-- [ ] Implement email verification during signup (currently auto-verified)
 - [ ] Add "Forgot Password" rate limiting and account lockout
 - [ ] Implement refresh token rotation for enhanced security
 - [ ] Add unit and integration tests (Jest + Supertest)
