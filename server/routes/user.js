@@ -208,7 +208,8 @@ router.delete("/delete", auth, async (req, res) => {
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
-    if (auth.user.email !== email) {
+    // FIX: only allow deletion if the authenticated user's email matches the email to delete
+    if (req.user.email !== email) {
       return res.status(403).json({ error: "You can only delete your own account" });
     }
 
