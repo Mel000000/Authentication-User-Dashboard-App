@@ -54,7 +54,6 @@ router.post('/upload-profile-image', auth, upload.single('profileImage'), async 
     if (user.profileImagePublicId) {
       try {
         await cloudinary.uploader.destroy(user.profileImagePublicId);
-        console.log('Old image deleted:', user.profileImagePublicId);
       } catch (err) {
         console.error('Error deleting old image:', err);
       }

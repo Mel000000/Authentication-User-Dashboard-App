@@ -33,7 +33,7 @@ function Login() {
                 });
                 setTimeout(() => {
                     navigate("/home");
-                }, 1500);
+                }, 1000);
             } else {
                 console.error("Backend authenticated you, but didn't return a 'token' property in the JSON body.");
             }

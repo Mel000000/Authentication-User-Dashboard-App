@@ -35,7 +35,7 @@ function ResetPasswordCard() {
       });
       setTimeout(() => {
         navigate('/');
-      }, 3000);
+      }, 1000);
     } catch (error) {
       console.error("Error resetting password:", error);
       // FIX: completed the truncated toast.error call

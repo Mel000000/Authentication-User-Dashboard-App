@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'react-bootstrap/Image';
 
-export default function ProfileImageUploader({ profileImage, setProfileImage, setProfileImageFile, fileInputRef }) {
+export default function ProfileImageUploader({ profileImage, setProfileImage, setProfileImageFile, fileInputRef, extraStyles = {} }) {
   const [imgHover, setImgHover] = React.useState(false);
   const handleImageClick = () => fileInputRef.current?.click();
 
@@ -48,6 +48,7 @@ export default function ProfileImageUploader({ profileImage, setProfileImage, se
             objectFit: 'cover',
             transition: 'filter 0.3s ease',
             filter: imgHover ? 'blur(1px) brightness(0.8)' : 'none', // Slightly dims/blurs background image
+            ...extraStyles
           }}
         />
 
