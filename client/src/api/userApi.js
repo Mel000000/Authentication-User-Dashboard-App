@@ -58,3 +58,39 @@ export const deleteUserAccount = async (email) => {
     throw error;
   }
 };
+
+export const updateUserProfile = async (profileData) => {
+  try {
+    const res = await apiClient.put("/user/updateProfile", profileData);
+    return res.data;
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    throw error;
+  }
+};
+
+// separate API call for editing the profile image, since it requires multipart/form-data
+export const uploadProfileImage = async (imageFile) => {
+  try {
+    const formData = new FormData();
+    formData.append('profileImage', imageFile);
+    const res = await apiClient.post('/profile/upload-profile-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error uploading profile image:", error);
+    throw error;
+  }
+};
+
+// seperate API call for editing the profile image, since it requires multipart/form-data
+export const changeProfileImage = async () => {
+  try {    
+    const res = await apiClient.delete('/profile/change-profile-image');
+    return res.data;
+  } catch (error) {
+    console.error("Error changing profile image:", error);
+    throw error;
+  }
+};

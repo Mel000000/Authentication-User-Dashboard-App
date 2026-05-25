@@ -237,4 +237,26 @@ router.delete("/delete", auth, async (req, res) => {
   }
 });
 
+router.put("/updateProfile", auth, async (req, res) => {
+  try {
+    const { username, country, email } = req.body;
+    const user = await User.findOne({ email: req.user.email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.username = username || user.username;
+    user.country = country || user.country;
+    user.email = email || user.email;
+
+    await user.save();
+
+    res.status(200).json({ message: "Profile updated successfully", user });
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
 module.exports = router;

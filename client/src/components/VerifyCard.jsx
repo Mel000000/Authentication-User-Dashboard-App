@@ -57,10 +57,10 @@ function VerifyCard({
       const { username, password, country, profileImageFile } = signupPayload;
 
       try {
-        // Step 1: verify the code — backend flips email_verified to true on the placeholder
+        // verify the code —> backend flips email_verified to true on the placeholder
         await verifyCode(email, code, "signup");
 
-        // Step 2: upsert the placeholder with full profile data
+        // upsert the placeholder with full profile data
         const response = await createUser({ email, password, username, country });
 
         if (response) {
@@ -68,7 +68,7 @@ function VerifyCard({
             const formData = new FormData();
             formData.append('profileImage', profileImageFile);
             try {
-              // FIX: removed extra /api/ prefix — apiClient baseURL already includes /api
+              // Separate API call for image upload to handle multipart/form-data
               await apiClient.post('/profile/upload-profile-image', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
               });
@@ -79,7 +79,7 @@ function VerifyCard({
           }
 
           toast.success(`Welcome to the community, ${username || 'User'}!`);
-          setTimeout(() => navigate('/'), 3000);
+          setTimeout(() => navigate('/'), 1000);
         }
       } catch (error) {
         console.error("Registration pipeline error:", error);
@@ -96,7 +96,7 @@ function VerifyCard({
       toast.success("Code verified! Redirecting...");
       setTimeout(() => {
         navigate('/reset-password', { state: { email, resetToken } });
-      }, 1500);
+      }, 1000);
     } catch (error) {
       toast.error("Invalid verification code. Please try again.");
     } finally {
