@@ -39,7 +39,18 @@ function VerifyCard({
       await sendMail(email, mode);
       toast.success("Verification code sent!");
     } catch (error) {
-      toast.error(error.response?.data || "Failed to send code");
+      // Check for rate‑limit error (429) or custom error message from backend
+      let errorMsg = "Failed to send code";
+      if (error.response) {
+        if (error.response.status === 429) {
+          errorMsg = "Too many code requests. Please wait an hour before trying again.";
+        } else if (error.response.data) {
+          errorMsg = error.response.data; // backend returns plain string or { error: ... }
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -83,7 +94,17 @@ function VerifyCard({
         }
       } catch (error) {
         console.error("Registration pipeline error:", error);
-        toast.error(error.response?.data || "Code invalid or registration failed.");
+        let errorMsg = "Code invalid or registration failed.";
+        if (error.response) {
+          if (error.response.status === 429) {
+            errorMsg = "Too many verification attempts. Please wait 15 minutes.";
+          } else if (error.response.data) {
+            errorMsg = typeof error.response.data === 'string' 
+              ? error.response.data 
+              : (error.response.data.error || errorMsg);
+          }
+        }
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -98,7 +119,17 @@ function VerifyCard({
         navigate('/reset-password', { state: { email, resetToken } });
       }, 1000);
     } catch (error) {
-      toast.error("Invalid verification code. Please try again.");
+      let errorMsg = "Invalid verification code. Please try again.";
+      if (error.response) {
+        if (error.response.status === 429) {
+          errorMsg = "Too many verification attempts. Please wait 15 minutes.";
+        } else if (error.response.data) {
+          errorMsg = typeof error.response.data === 'string'
+            ? error.response.data
+            : (error.response.data.error || errorMsg);
+        }
+      }
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

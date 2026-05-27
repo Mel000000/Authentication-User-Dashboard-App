@@ -38,8 +38,26 @@ function ResetPasswordCard() {
       }, 1000);
     } catch (error) {
       console.error("Error resetting password:", error);
-      // FIX: completed the truncated toast.error call
-      toast.error(error.response?.data?.error || "Failed to reset password. Please try again.");
+      
+      // Detect rate‑limit (429) or other error types
+      let errorMsg = "Failed to reset password. Please try again.";
+      
+      if (error.response) {
+        if (error.response.status === 429) {
+          errorMsg = "Too many reset attempts. Please wait 15 minutes before trying again.";
+        } else if (error.response.data) {
+          errorMsg = typeof error.response.data === 'string'
+            ? error.response.data
+            : (error.response.data.error || errorMsg);
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      toast.error(errorMsg, {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }

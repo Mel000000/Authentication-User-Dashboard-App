@@ -1,6 +1,4 @@
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+const { v2: cloudinary } = require('cloudinary');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -10,44 +8,15 @@ cloudinary.config({
   secure: true
 });
 
-// Configure storage
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'user_profiles',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 500, height: 500, crop: 'limit' }],
-    format: 'webp', // Convert to webp for better compression
-  },
-});
-
-// File filter for security
-const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, and WEBP are allowed.'), false);
-  }
-};
-
-// Create multer upload instance with size limit
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-});
-
+// Helper to delete an image by public ID
 const deleteImageFromCloudinary = async (publicId) => {
   try {
-    await cloudinary.uploader.destroy(publicId);
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result;
   } catch (error) {
     console.error("Error deleting image from Cloudinary:", error);
     throw error;
   }
 };
 
-module.exports = { cloudinary, upload, deleteImageFromCloudinary };
+module.exports = { cloudinary, deleteImageFromCloudinary };
