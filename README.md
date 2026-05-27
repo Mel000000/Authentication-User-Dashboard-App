@@ -13,7 +13,6 @@ A full‑stack authentication and user dashboard application built with **Node.j
 [![Mongoose](https://img.shields.io/badge/Mongoose-9.x-880000)](https://mongoosejs.com/)
 [![JWT](https://img.shields.io/badge/JWT-9.x-000000)](https://jwt.io/)
 [![Cloudinary](https://img.shields.io/badge/Cloudinary-2.x-3448C5)](https://cloudinary.com/)
-[![Google Maps](https://img.shields.io/badge/Google%20Maps-API-4285F4)](https://developers.google.com/maps)
 [![reCAPTCHA](https://img.shields.io/badge/reCAPTCHA-v2-3A7B2E)](https://www.google.com/recaptcha/)
 [![Axios](https://img.shields.io/badge/Axios-1.x-5A29E4)](https://axios-http.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.x-7952B3)](https://getbootstrap.com/)
