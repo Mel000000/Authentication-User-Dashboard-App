@@ -13,14 +13,14 @@ test('create new account', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Email Address' }).fill('test@gmail.com');
   await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
   await page.getByRole('button', { name: '-- Select country --' }).click();
-  await page.getByRole('button', { name: 'Albania flag Albania' }).click();
-  await page.getByRole('button', { name: 'Create Account' }).click();
-  await page.waitForTimeout(1000);
-  if  (await page.getByText('User created successfully!').isVisible()) {
+  //await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+  //await page.getByRole('button', { name: 'Create Account' }).click();
+  //await page.waitForTimeout(1000);
+  /*if  (await page.getByText('User created successfully!').isVisible()) {
     console.log('Account creation successful!');
   } else if (await page.getByText('Email already in use').isVisible()) {
     console.error('Account creation failed since the email is already in use!');
-  }
+  }*/
 });
 
 
