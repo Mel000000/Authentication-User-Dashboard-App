@@ -1,13 +1,18 @@
 // server/config/redis.js
-const { Redis } = require('@upstash/redis');
+const Redis = require('ioredis');
 
-const redisClient = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+// Use the Upstash Redis TLS URL
+const redisClient = new Redis(process.env.UPSTASH_REDIS_URL, {
+  tls: {
+    rejectUnauthorized: false, // required for Upstash TLS
+  },
+  retryStrategy: (times) => {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  },
 });
 
-// @upstash/redis doesn't have 'connect' or 'error' events in the same way.
-// It automatically handles retries and reports errors via the promises.
-console.log('Upstash Redis client configured');
+redisClient.on('connect', () => console.log('✅ Redis connected via ioredis'));
+redisClient.on('error', (err) => console.error('Redis error:', err));
 
 module.exports = redisClient;
