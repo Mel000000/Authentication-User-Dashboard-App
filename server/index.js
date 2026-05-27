@@ -7,6 +7,7 @@ const countryRouter = require('./routes/country');
 const codeRequestRouter = require('./routes/codeRequest');
 const userRouter = require('./routes/user');
 const profileImageRouter = require('./routes/profileImage');
+const { generalLimiter, authLimiter, emailLimiter } = require('./middleware/rateLimiter');
 require("dotenv").config(); // load .env
 
 const uri = process.env.MONGODB_URI;
@@ -43,8 +44,13 @@ app.use(cors({
 
 app.use(express.json()); // parse JSON request bodies
 app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodies
-//app.use(express.static(path.join(__dirname,"public"))); // serve static files NOTE: not in production, since React build will be served instead
-//app.use(express.static(path.join(__dirname, '../client/dist'))); 
+
+app.use('/api/codeRequest', emailLimiter);                // limits POST to /codeRequest
+app.use('/api/codeRequest/verifyCode', authLimiter);      // limits POST /verifyCode
+app.use('/api/user/loginUser', authLimiter);              // limits POST login
+app.use('/api/user/createUser', authLimiter);             // limits POST createUser
+
+app.use("/api/",generalLimiter);
 
 // Routes that are server API endpoints
 app.use("/api/country", countryRouter);
@@ -52,10 +58,7 @@ app.use("/api/codeRequest", codeRequestRouter);
 app.use("/api/user", userRouter);
 app.use("/api/profile", profileImageRouter);
 
-// For all other routes, serve React's index.html (enables client-side routing)
-/*app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html')); // not needed in development since Vite dev server will handle this, but required in production to serve the React app
-});*/
+
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}!`);

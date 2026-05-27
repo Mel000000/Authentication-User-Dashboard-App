@@ -6,6 +6,7 @@ import RecaptchaComponent from './RecaptchaComponent.jsx';
 import { loginUser, getCurrentUser } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
+import {toast as hotToast} from 'react-hot-toast';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
@@ -40,9 +41,24 @@ function Login() {
         }
         catch (error) {
             console.error("Login error:", error);
-            toast.error("Login failed. Please check your credentials and try again.", {
+            
+            let errorMessage = "Login failed. Please check your credentials and try again.";
+            
+            if (error.response) {
+                // Axios puts the response in error.response
+                if (error.response.status === 429) {
+                    errorMessage = "Too many failed login attempts. Please wait 15 minutes before trying again.";
+                } else if (error.response.data && error.response.data.error) {
+                    errorMessage = error.response.data.error;
+                }
+            } else if (error.message) {
+                // Fallback for fetch or other errors
+                errorMessage = error.message;
+            }
+            
+            toast.error(errorMessage, {
                 position: "top-right",
-                autoClose: 3000,
+                autoClose: 4000,
             });
         }   
     }

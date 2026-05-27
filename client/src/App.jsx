@@ -11,6 +11,7 @@ import HomePage from './pages/homePage.jsx';
 import LoginPage from './pages/loginPage.jsx';
 import ResetPasswordPage from './pages/resetPasswordPage.jsx';
 import VerifyEmailPage from './pages/verifyEmailPage.jsx';
+import {Toaster} from "react-hot-toast";
 
 
 const router = createBrowserRouter([
@@ -43,6 +44,7 @@ const router = createBrowserRouter([
 function App() {
   return (
     <>
+      <Toaster position="top-right"/>
       <RouterProvider router={router} />
     </>
   )
