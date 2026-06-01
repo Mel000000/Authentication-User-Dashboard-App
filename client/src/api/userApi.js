@@ -84,13 +84,12 @@ export const uploadProfileImage = async (imageFile) => {
   }
 };
 
-// seperate API call for editing the profile image, since it requires multipart/form-data
-export const changeProfileImage = async () => {
-  try {    
-    const res = await apiClient.delete('/profile/change-profile-image');
+export const storeRegistrationData = async (data) => {
+  try{
+    const res = await apiClient.post("/user/storeRegistrationData", data);
     return res.data;
-  } catch (error) {
-    console.error("Error changing profile image:", error);
+  }catch(error){
+    console.error("Error storing registration data:", error);
     throw error;
   }
 };

@@ -6,8 +6,40 @@ const User = require("../models/user");
 const { createUserSchema } = require("../models/userZSchema");
 const auth = require("../middleware/auth");
 const { deleteImageFromCloudinary } = require("../config/cloudinary");
+const isProduction = process.env.NODE_ENV === 'production';
 
 const router = express.Router();
+
+// Helper function to verify CAPTCHA token with Google's API
+async function verifyCaptcha(token) {
+  if (!token || typeof token !== 'string' || token.length < 20) {
+    return false;
+  }
+
+  try {
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
+      null,
+      {
+        params: {
+          secret: process.env.CAPTCHA_SECRET,
+          response: token
+        },
+        timeout: 10000
+      }
+    );
+
+    if (response.data.success === true) {
+      return true;
+    } else {
+      console.log("CAPTCHA failed with errors:", response.data['error-codes']);
+      return false;
+    }
+  } catch (error) {
+    console.error("CAPTCHA verification error:", error.message);
+    return false;
+  }
+}
 
 // Get current user (protected route)
 router.get("/me", auth, async (req, res) => {
@@ -31,6 +63,34 @@ router.post("/logout", (req, res) => {
     sameSite: 'none'
   });
   res.json({ message: "Logged out successfully" });
+});
+
+// Endpoint that recieves user data from the front and stores it for the createUser route to complete the registration after email verification
+router.post("/storeRegistrationData", async (req, res) => {
+  const { email, password, username, country } = req.body;
+  if (!email || !password || !username || !country) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+  try {    
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const placeholderUser = new User({
+      email,
+      password: hashedPassword,
+      username,
+      country,
+      email_verified: false,
+      profileImageUrl: `https://ui-avatars.com/api/?background=667eea&color=fff&rounded=true&size=150&bold=true&name=${encodeURIComponent(username)}`,
+    });
+    await placeholderUser.save();
+    res.json({ message: "Registration data stored successfully" });
+  } catch (err) {
+    console.error("Error storing registration data:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // Endpoint to create / complete a new user after email verification
@@ -86,8 +146,8 @@ router.post("/createUser", async (req, res) => {
 
     res.cookie('token', jwtToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -111,36 +171,7 @@ router.post("/createUser", async (req, res) => {
   }
 });
 
-async function verifyCaptcha(token) {
-  if (!token || typeof token !== 'string' || token.length < 20) {
-    return false;
-  }
-
-  try {
-    const response = await axios.post(
-      "https://www.google.com/recaptcha/api/siteverify",
-      null,
-      {
-        params: {
-          secret: process.env.CAPTCHA_SECRET,
-          response: token
-        },
-        timeout: 10000
-      }
-    );
-
-    if (response.data.success === true) {
-      return true;
-    } else {
-      console.log("CAPTCHA failed with errors:", response.data['error-codes']);
-      return false;
-    }
-  } catch (error) {
-    console.error("CAPTCHA verification error:", error.message);
-    return false;
-  }
-}
-
+// Login endpoint
 router.post("/loginUser", async (req, res) => {
   const { email, password, token: captchaToken } = req.body;
 
@@ -178,8 +209,8 @@ router.post("/loginUser", async (req, res) => {
 
     res.cookie("token", jwtToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -202,6 +233,7 @@ router.post("/loginUser", async (req, res) => {
   }
 });
 
+// Delete user account endpoint
 router.delete("/delete", auth, async (req, res) => {
   try {
     const email = req.body.email;
@@ -237,6 +269,7 @@ router.delete("/delete", auth, async (req, res) => {
   }
 });
 
+// Update user profile endpoint
 router.put("/updateProfile", auth, async (req, res) => {
   try {
     const { username, country, email } = req.body;
@@ -259,6 +292,7 @@ router.put("/updateProfile", auth, async (req, res) => {
   }
 });
 
+// Get logged-in user info (protected route)
 router.get("/loggedIn", auth, async (req, res) => {
   try {
     const { email } = req.user;

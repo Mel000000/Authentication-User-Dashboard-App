@@ -11,7 +11,7 @@ import ProfileImageUploader from './ProfileImageUploader';
 import AccountFields from './AccountFields';
 import CountrySelector from './CountrySelector';
 import { getCountryLoc } from '../api/countryApi';
-import { createUser } from '../api/userApi';
+import { createUser, storeRegistrationData } from '../api/userApi';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import apiClient from '../api/apiClient';
@@ -62,25 +62,42 @@ function Signup() {
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        if (!validForm || loading || submitted) {
-            toast.error("Please fill out all fields correctly.");
-            return;
-        }
-        
-        // Redirect to the verification card route, sending signup data downstream
-        navigate('/verify-email', { 
-            state: { 
-                email, 
-                username, 
-                password, 
-                country, 
-                profileImage, 
-                profileImageFile,  
+        if (!validForm || loading || submitted) return;
+
+        setLoading(true);
+        setSubmitted(true);
+
+        try {
+            await storeRegistrationData({ email, username, password, country }); 
+            if (profileImageFile) {
+                const formData = new FormData();
+                formData.append('profileImage', profileImageFile);
+                formData.append('email', email);          
+
+                try {
+                    await apiClient.post('/profile/upload-profile-image-temporary-user', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+                    toast.success("Profile image updated successfully!", { position: "top-right", autoClose: 1000 });
+                } catch (uploadError) {
+                    console.warn("Profile update succeeded but avatar upload failed:", uploadError);
+                    toast.warning("Profile updated, but your avatar upload encountered an error.");
+                }
+            }
+            navigate('/verify-email', {
+            state: {
+                email,
                 submitForVerifyEmail: true,
                 title: "Verify Your Email",
                 buttonText: "Complete Registration"
-            } 
-        });
+            }
+            });
+        } catch (err) {
+            toast.error(err.response?.data?.error || "Registration failed");
+            setSubmitted(false); // allow retry on failure
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

@@ -54,7 +54,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Endpoint to verify the code
+// Endpoint to verify the code and either complete signup or issue reset token
 router.post("/verifyCode", async (req, res) => {
   const { email, userCode, mode } = req.body;
 
@@ -76,12 +76,40 @@ router.post("/verifyCode", async (req, res) => {
     }
 
     if (mode === "signup") {
-      // FIX: flip email_verified to true here so createUser upsert works correctly
       user.email_verified = true;
       user.verifyCode = null;
       user.verifyCodeExpires = null;
       await user.save();
-      return res.status(200).send("Code verified successfully");
+      // set cookies so the users is immediatly logged in
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      const jwtToken = jwt.sign(
+        { userId: user._id, email: user.email, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      const isProduction = process.env.NODE_ENV === "production";
+      res.cookie("token", jwtToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      const userResponse = {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        country: user.country,
+        profileImageUrl: user.profileImageUrl,
+      };
+
+      return res.status(200).json({
+        message: "Verification successful, logged in",
+        user: userResponse,
+      });
     }
 
     if (mode === "reset") {
