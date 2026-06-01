@@ -118,7 +118,7 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
     }
 
     if (mode === "reset") {
-      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET_RESET_PASSWORD, { expiresIn: '15m' });
       user.verifyCode = null;
       user.verifyCodeExpires = null;
       await user.save();
@@ -143,7 +143,7 @@ router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET_PASSWORD);
     if (!decoded || decoded.email !== email) {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
