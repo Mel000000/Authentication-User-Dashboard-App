@@ -8,7 +8,14 @@ const codeRequestRouter = require('./routes/codeRequest');
 const userRouter = require('./routes/user');
 const profileImageRouter = require('./routes/profileImage');
 const { generalLimiter, authLimiter, emailLimiter } = require('./middleware/rateLimiter');
+const session = require("express-session");
+const RedisStore = require("connect-redis")(session);  
+const redisClient = require("./config/redis");
+
+const redisStore = new RedisStore({ client: redisClient });
 require("dotenv").config(); // load .env
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 const uri = process.env.MONGODB_URI;
 const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
@@ -28,6 +35,21 @@ connectDB();
 
 const app = express()
 
+app.use(
+  session({
+    store: redisStore,
+    secret: process.env.SESSION_SECRET || "your-session-secret", // add SESSION_SECRET to .env
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  })
+);
+
 app.use(cookieParser());
 
 //const allowedOrigin = viteApiBaseUrl // Adjust this to match your frontend URL in development and production
@@ -37,13 +59,12 @@ app.use(cors({
   origin: allowedOrigin, 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"]
 }));
-
-
 
 app.use(express.json()); // parse JSON request bodies
 app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodies
+
 
 // Apply rate limiters only in production to avoid hindering development and testing
 if (process.env.NODE_ENV === 'production') {
@@ -57,14 +78,18 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 
-
 // Routes that are server API endpoints
 app.use("/api/country", countryRouter);
 app.use("/api/codeRequest", codeRequestRouter);
 app.use("/api/user", userRouter);
 app.use("/api/profile", profileImageRouter);
 
-
+app.use((err, req, res, next) => {
+  if (err.code === "EBADCSRFTOKEN" || err.message === "invalid csrf token") {
+    return res.status(403).json({ error: "Invalid or missing CSRF token" });
+  }
+  next(err);
+});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}!`);

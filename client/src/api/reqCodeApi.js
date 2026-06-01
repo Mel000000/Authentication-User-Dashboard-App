@@ -31,7 +31,6 @@ export const verifyCode = async (email, userCode, mode = "reset") => {
 };
 
 
-
 export const resetPassword = async (email, newPassword, resetToken) => {
   try {
     const res = await apiClient.post(`/codeRequest/resetPassword/?token=${resetToken}`, { email, newPassword });

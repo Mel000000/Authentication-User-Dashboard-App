@@ -4,10 +4,15 @@ const { sendMail } = require("../controllers/emailSender.js");
 const User = require("../models/user");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
 const router = express.Router();
+const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
+
+router.use(helmet());
+
 
 // Endpoint to request a verification code
-router.post("/", async (req, res) => {
+router.post("/", doubleCsrfProtection, async (req, res) => {
   const { email, mode } = req.body;
 
   if (!email) return res.status(400).send("Email is required");
@@ -55,7 +60,7 @@ router.post("/", async (req, res) => {
 });
 
 // Endpoint to verify the code and either complete signup or issue reset token
-router.post("/verifyCode", async (req, res) => {
+router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
   const { email, userCode, mode } = req.body;
 
   if (!email || !userCode) {
@@ -128,7 +133,7 @@ router.post("/verifyCode", async (req, res) => {
 });
 
 // Reset password endpoint
-router.post("/resetPassword", async (req, res) => {
+router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
   const { email, newPassword } = req.body;
   const resetToken = req.query.token;
 

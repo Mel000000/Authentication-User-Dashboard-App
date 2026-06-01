@@ -1,5 +1,6 @@
 import apiClient from "./apiClient";
 
+
 export const createUser = async (userData) => {
   try {
     const res = await apiClient.post("/user/createUser", userData); 
@@ -13,7 +14,6 @@ export const createUser = async (userData) => {
 export const loginUser = async (loginData) => {
   try {
     const res = await apiClient.post("/user/loginUser", loginData);
-    
     return res.data;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -29,7 +29,6 @@ export const getCurrentUser = async (explicitToken=null) => {
         Authorization: `Bearer ${explicitToken}`
       };
     }
-
     const res = await apiClient.get("/user/me", config);
     return res.data;
   } catch (error) {

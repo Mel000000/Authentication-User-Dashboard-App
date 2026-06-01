@@ -2,13 +2,17 @@ const express = require("express");
 const axios = require("axios");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const helmet = require("helmet");
 const User = require("../models/user");
 const { createUserSchema } = require("../models/userZSchema");
 const auth = require("../middleware/auth");
 const { deleteImageFromCloudinary } = require("../config/cloudinary");
+const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
 const isProduction = process.env.NODE_ENV === 'production';
 
 const router = express.Router();
+
+router.use(helmet());
 
 // Helper function to verify CAPTCHA token with Google's API
 async function verifyCaptcha(token) {
@@ -41,6 +45,20 @@ async function verifyCaptcha(token) {
   }
 }
 
+router.get("/csrf-token", (req, res) => {
+  try {
+    res.clearCookie("X-CSRF-Token");
+    res.clearCookie("__Host-csrf");
+    res.clearCookie("csrf-token");
+
+    const token = generateToken(req, res, true);
+    res.json({ csrfToken: token });
+  } catch (err) {
+    console.error("CSRF token generation error:", err);
+    res.status(500).json({ error: "Could not generate CSRF token" });
+  }
+});
+
 // Get current user (protected route)
 router.get("/me", auth, async (req, res) => {
   try {
@@ -56,17 +74,18 @@ router.get("/me", auth, async (req, res) => {
 });
 
 // Logout endpoint
-router.post("/logout", (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none'
-  });
-  res.json({ message: "Logged out successfully" });
-});
+router.post("/logout",doubleCsrfProtection,(req, res) => {                     
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
+    });
+    res.json({ message: "Logged out successfully" });
+  }
+);
 
 // Endpoint that recieves user data from the front and stores it for the createUser route to complete the registration after email verification
-router.post("/storeRegistrationData", async (req, res) => {
+router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) => {
   const { email, password, username, country } = req.body;
   if (!email || !password || !username || !country) {
     return res.status(400).json({ error: "All fields are required" });
@@ -94,7 +113,7 @@ router.post("/storeRegistrationData", async (req, res) => {
 });
 
 // Endpoint to create / complete a new user after email verification
-router.post("/createUser", async (req, res) => {
+router.post("/createUser", doubleCsrfProtection, async (req, res) => {
   const parsed = createUserSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -105,7 +124,7 @@ router.post("/createUser", async (req, res) => {
   try {
     const existingUser = await User.findOne({ email: parsed.data.email });
 
-    // FIX: block only if a *verified* user already exists (not the placeholder we created)
+    // FIX: block only if a *verified* user already exists
     if (existingUser && existingUser.email_verified && existingUser.password) {
       return res.status(400).json({ error: "Email already in use" });
     }
@@ -172,7 +191,7 @@ router.post("/createUser", async (req, res) => {
 });
 
 // Login endpoint
-router.post("/loginUser", async (req, res) => {
+router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
   const { email, password, token: captchaToken } = req.body;
 
   if (!email || !password) {
@@ -234,7 +253,7 @@ router.post("/loginUser", async (req, res) => {
 });
 
 // Delete user account endpoint
-router.delete("/delete", auth, async (req, res) => {
+router.delete("/delete", doubleCsrfProtection, auth, async (req, res) => {
   try {
     const email = req.body.email;
     if (!email) {
@@ -270,7 +289,7 @@ router.delete("/delete", auth, async (req, res) => {
 });
 
 // Update user profile endpoint
-router.put("/updateProfile", auth, async (req, res) => {
+router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
   try {
     const { username, country, email } = req.body;
     const user = await User.findOne({ email: req.user.email });
