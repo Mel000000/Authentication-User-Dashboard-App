@@ -71,6 +71,18 @@ router.get("/csrf-token", async (req, res) => {
   }
 });
 
+router.get("/session-test", (req, res) => {
+  if (!req.session.test) {
+    req.session.test = Date.now();
+    req.session.save(err => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ msg: "Session created", id: req.sessionID });
+    });
+  } else {
+    res.json({ msg: "Session exists", id: req.sessionID, created: req.session.test });
+  }
+});
+
 // Get current user (protected route)
 router.get("/me", auth, async (req, res) => {
   try {
@@ -97,7 +109,7 @@ router.post("/logout",doubleCsrfProtection,(req, res) => {
 );
 
 // Endpoint that recieves user data from the front and stores it for the createUser route to complete the registration after email verification
-router.post("/storeRegistrationData",/* doubleCsrfProtection ,*/ async (req, res) => {
+router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) => {
   const { email, password, username, country } = req.body;
   if (!email || !password || !username || !country) {
     return res.status(400).json({ error: "All fields are required" });
@@ -125,7 +137,7 @@ router.post("/storeRegistrationData",/* doubleCsrfProtection ,*/ async (req, res
 });
 
 // Endpoint to create / complete a new user after email verification
-router.post("/createUser",/* doubleCsrfProtection,*/ async (req, res) => {
+router.post("/createUser",doubleCsrfProtection,async (req, res) => {
   const parsed = createUserSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -203,7 +215,7 @@ router.post("/createUser",/* doubleCsrfProtection,*/ async (req, res) => {
 });
 
 // Login endpoint
-router.post("/loginUser",/* doubleCsrfProtection,*/ async (req, res) => {
+router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
   const { email, password, token: captchaToken } = req.body;
 
   if (!email || !password) {
@@ -228,18 +240,6 @@ router.post("/loginUser",/* doubleCsrfProtection,*/ async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    // After successful authentication, create/initialize session
-    if (!req.session.userId) {
-      req.session.userId = user._id;
-      req.session.email = user.email;
-      await new Promise((resolve, reject) => {
-        req.session.save(err => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
     }
 
     const payload = {

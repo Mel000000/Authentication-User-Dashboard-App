@@ -39,12 +39,12 @@ app.use(session({
   store: redisStore,
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
   cookie: {
-    httpOnly: true,
-    secure: true,                // must be true on HTTPS
-    sameSite: 'none',            // required for cross-site requests
-    domain: '.onrender.com',     // allows sharing between subdomains
+    httpOnly: isProduction,             // prevent client-side JS access
+    secure: isProduction,                // must be true on HTTPS
+    sameSite: isProduction ? 'none' : 'lax',            // required for cross-site requests
+    domain: isProduction ? '.onrender.com' : undefined,     // allows sharing between subdomains
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   }
