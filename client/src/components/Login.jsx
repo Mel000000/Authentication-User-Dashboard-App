@@ -7,6 +7,7 @@ import { loginUser, getCurrentUser } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import {toast as hotToast} from 'react-hot-toast';
+import {fetchCsrfToken} from '../api/apiClient';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
@@ -14,12 +15,24 @@ function Login() {
     const [token, setToken] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [tokenReady, setTokenReady] = useState(false);
+
+    useEffect(() => {
+        fetchCsrfToken(true).then(() => {
+            setTokenReady(true);
+        }).catch((error) => {
+            console.error("Error fetching CSRF token:", error);
+            hotToast.error("Failed to initialize login form. Please refresh the page.");
+        }
+        );
+    }, []);
 
     const validForm = () => { 
         return email && password && token;
     }
 
     const onSubmit = async () => {
+        if (!tokenReady) return;
         try {
             const loginData = { email, password, token };
             const data = await loginUser(loginData);
