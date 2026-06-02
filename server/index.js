@@ -35,22 +35,20 @@ connectDB();
 
 const app = express()
 
-app.use(
-  session({
-    store: redisStore,
-    secret: process.env.SESSION_SECRET || "your-session-secret", // add SESSION_SECRET to .env
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      domain:".onrender.com",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    },
-  })
-);
+app.use(session({
+  store: redisStore,
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: true,                // must be true on HTTPS
+    sameSite: 'none',            // required for cross-site requests
+    domain: '.onrender.com',     // allows sharing between subdomains
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  }
+}));
 
 app.use(cookieParser());
 
