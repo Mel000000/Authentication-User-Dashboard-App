@@ -47,9 +47,9 @@ async function verifyCaptcha(token) {
 
 router.get("/csrf-token", async (req, res) => {
   try {
-    // Ensure a session exists
-    if (!req.session.userId) {
-      req.session.userId = null; // dummy write
+    // Force session creation by writing a dummy value and saving
+    if (!req.session.csrfInit) {
+      req.session.csrfInit = true;
       await new Promise((resolve, reject) => {
         req.session.save(err => {
           if (err) reject(err);
@@ -57,12 +57,12 @@ router.get("/csrf-token", async (req, res) => {
         });
       });
     }
-    
-    // Clear old CSRF cookies 
+
+    // Clear old CSRF cookies
     res.clearCookie("X-CSRF-Token");
     res.clearCookie("__Host-csrf");
     res.clearCookie("csrf-token");
-    
+
     const token = generateToken(req, res, true);
     res.json({ csrfToken: token });
   } catch (err) {
