@@ -71,17 +71,6 @@ router.get("/csrf-token", async (req, res) => {
   }
 });
 
-router.get("/session-test", (req, res) => {
-  if (!req.session.test) {
-    req.session.test = Date.now();
-    req.session.save(err => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ msg: "Session created", id: req.sessionID });
-    });
-  } else {
-    res.json({ msg: "Session exists", id: req.sessionID, created: req.session.test });
-  }
-});
 
 // Get current user (protected route)
 router.get("/me", auth, async (req, res) => {
