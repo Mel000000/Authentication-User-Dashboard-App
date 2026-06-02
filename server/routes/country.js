@@ -16,6 +16,7 @@ router.get("/all", async (req, res) => {
 // Return latitude and longitude for a given country name
 router.get("/:value", async (req, res) => {
     try{
+        req.params.value = decodeURIComponent(req.params.value);
         const apiEndpointRes = await axios.get("https://restcountries.com/v3.1/name/" + req.params.value);
         res.send(apiEndpointRes.data[0].latlng);
     } catch (error) {
@@ -26,6 +27,7 @@ router.get("/:value", async (req, res) => {
 // Return flag URL for a given country name
 router.get("/flag/:countryName", async (req, res) => {
     try {
+        req.params.countryName = decodeURIComponent(req.params.countryName);
         const apiEndpointRes = await axios.get("https://restcountries.com/v3.1/name/" + req.params.countryName);
         const flagUrl = apiEndpointRes.data[0].flags && apiEndpointRes.data[0].flags.png ? apiEndpointRes.data[0].flags.png : null;
         res.send({ flagUrl });

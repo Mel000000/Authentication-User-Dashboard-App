@@ -5,6 +5,8 @@ import { Container, Button, Card, Spinner, Row, Col, Image, Badge,Form, FormCont
 import { toast, ToastContainer } from 'react-toastify';
 import apiClient from '../api/apiClient';
 import ProfileImageUploader from '../components/ProfileImageUploader';
+import CountrySelector from '../components/CountrySelector';
+import ConfirmationModal from '../components/ConfirmationModal';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function Dashboard() {
@@ -17,8 +19,14 @@ export default function Dashboard() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [country, setCountry] = useState('');
+  const [x, setX] = useState(20);
+  const [y, setY] = useState(0);
+  const [zoom, setZoom] = useState(1);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -81,9 +89,18 @@ export default function Dashboard() {
     }
   };
 
+
   const handleProfileUpdate = async (e) => {
       e.preventDefault();
       try{
+        const user = await getCurrentUser(); // Get the current user data to ensure we have the latest email
+        if (!user) {
+          toast.error("User not found. Please refresh and try again.", {
+            position: "top-right",
+          });
+          return;
+        }
+
         await updateUserProfile({ email, username, country });
         toast.success("Profile updated successfully!", {
           position: "top-right",
@@ -119,6 +136,7 @@ export default function Dashboard() {
         });
       }
   }
+
 
   if (loading) {
     return (
@@ -226,23 +244,19 @@ export default function Dashboard() {
                     </Row>
                     <Form>
 
-                      <div className="mb-4">
-                        <div className="d-flex align-items-center mb-3 p-3 rounded" style={{ background: '#f7fafc' }}>
+                      
+
+                      {editProfile ? (<></>):(
+
+  
+                        <div className="d-flex align-items-center mb-4 p-3 rounded" style={{ background: '#f7fafc' }}>
                           <span className="me-3" style={{ fontSize: '24px' }}>📧</span>
                           <div>
                             <small className="text-muted d-block">Email Address</small>
-                            {editProfile ? (
-                              <Form.Control 
-                                type="email"
-                                defaultValue={user?.email}
-                                bordered={false}
-                                onChange={(e) => setEmail(e.target.value)} // Update email state on change
-                              />
-                            ) : (
-                              <strong className="fs-5">{user?.email}</strong>
-                            )}
+                            <strong className="fs-5">{user?.email}</strong>
                           </div>
                         </div>
+                        )}
 
                         <div className="d-flex align-items-center mb-3 p-3 rounded" style={{ background: '#f7fafc' }}>
                           <span className="me-3" style={{ fontSize: '24px' }}>👤</span>
@@ -266,12 +280,7 @@ export default function Dashboard() {
                           <div>
                             <small className="text-muted d-block">Country</small>
                             {editProfile ? (
-                              <Form.Control 
-                                type="text"
-                                defaultValue={user?.country || 'Not specified'}
-                                bordered={false}
-                                onChange={(e) => setCountry(e.target.value)} // Update country state on change
-                              />
+                              <CountrySelector value={country} onChange={(countryName) => setCountry(countryName)} disableLabel={true} />
                             ) : (
                               <strong className="fs-5">{user?.country || 'Not specified'}</strong>
                             )}
@@ -296,7 +305,7 @@ export default function Dashboard() {
                         </div>
                         )}
 
-                      </div>
+                      
 
                       <Row className="g-3">
                         
@@ -352,7 +361,7 @@ export default function Dashboard() {
                           <Col xs={12} md={6}>
                           <Button 
                             variant="danger" 
-                            onClick={handleDeleteAccount}
+                            onClick={() => setShowDeleteModal(true)}
                             className="w-100 py-2 fw-bold"
                             style={{ 
                               borderRadius: '0.75rem',
@@ -385,6 +394,15 @@ export default function Dashboard() {
           </Col>
         </Row>
         <ToastContainer />
+        <ConfirmationModal 
+          show={showDeleteModal} 
+          onHide={() => setShowDeleteModal(false)} 
+          onConfirm={handleDeleteAccount}
+          title="Confirm Account Deletion"
+          body="Are you sure you want to delete your account? This action cannot be undone."
+          confirmationText={user?.email}
+          buttonText="Yes, Delete My Account"
+        />
       </Container>
   );
 }

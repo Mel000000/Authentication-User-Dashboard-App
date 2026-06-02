@@ -5,6 +5,7 @@ export default function AccountFields({
   password, setPassword,
   confirmPassword, setConfirmPassword
 }) {
+  const passwordValid = password === '' || (password.length >= 6 && /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password));
   return (
     <>
       <Form.Group className="mb-3 mt-4" controlId="formBasicPassword">
@@ -13,11 +14,11 @@ export default function AccountFields({
           type="password"
           placeholder="Password"
           value={password}
-          isInvalid={password !== '' && password.length < 6}
+          isInvalid={!passwordValid}
           onChange={(e) => setPassword(e.target.value)}
         />
         <Form.Control.Feedback type="invalid">
-          Password must be at least 6 characters long
+          Password must be at least 6 characters long and contain both letters and numbers
         </Form.Control.Feedback>
       </Form.Group>
 

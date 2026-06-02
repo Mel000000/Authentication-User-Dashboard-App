@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form, Dropdown } from 'react-bootstrap';
 import { getCountryNameList, getCountryFlag } from '../api/countryApi';
 
-export default function CountrySelector({ value, onChange }) {
+export default function CountrySelector({ value, onChange, disableLabel=false }) {
   const [options, setOptions] = useState([]);
   const [countryFlags, setCountryFlags] = useState({});
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ export default function CountrySelector({ value, onChange }) {
 
   return (
     <Form.Group className="mb-3" controlId="formCountrySelect">
-      <Form.Label className="fw-semibold">Select your Country</Form.Label>
+      {!disableLabel && <Form.Label className="fw-semibold">Select your Country</Form.Label>}
       
       <Dropdown onSelect={(selectedValue) => onChange(selectedValue)} className="w-100">
         <Dropdown.Toggle 

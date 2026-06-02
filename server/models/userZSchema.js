@@ -3,9 +3,9 @@ const { z } = require("zod");
 const createUserSchema = z.object({
   email: z.string().email(),
   email_verified: z.boolean().default(false),
-  password: z.string(),
-  username: z.string().min(1),
-  country: z.string().min(1),
+  password: z.string().min(6).regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/),
+  username: z.string().min(2).max(100),
+  country: z.string().min(2).max(100),
   profileImageUrl: z.string().optional(),
   profileImagePublicId: z.string().optional(),
   verifyCode: z.string().optional(),
