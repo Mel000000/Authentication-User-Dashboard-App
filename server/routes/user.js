@@ -47,7 +47,7 @@ async function verifyCaptcha(token) {
 
 router.get("/csrf-token", async (req, res) => {
   try {
-    // Force session creation by writing a dummy value and saving
+    // Force session to be created and saved
     if (!req.session.csrfInit) {
       req.session.csrfInit = true;
       await new Promise((resolve, reject) => {
@@ -58,7 +58,7 @@ router.get("/csrf-token", async (req, res) => {
       });
     }
 
-    // Clear old CSRF cookies
+    // Now clear old CSRF cookies and generate new token
     res.clearCookie("X-CSRF-Token");
     res.clearCookie("__Host-csrf");
     res.clearCookie("csrf-token");
