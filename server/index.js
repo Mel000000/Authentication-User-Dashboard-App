@@ -9,7 +9,7 @@ const userRouter = require('./routes/user');
 const profileImageRouter = require('./routes/profileImage');
 const { generalLimiter, authLimiter, emailLimiter } = require('./middleware/rateLimiter');
 const session = require("express-session");
-const RedisStore = require("connect-redis")(session);  
+const RedisStore = require("connect-redis")(session);
 const redisClient = require("./config/redis");
 
 const redisStore = new RedisStore({ client: redisClient });
@@ -20,8 +20,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 const uri = process.env.MONGODB_URI;
 const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
 const PORT = process.env.PORT || 3000;
-
-console.log(`👉 NODE_ENV: ${process.env.NODE_ENV}, isProduction: ${isProduction}, PORT: ${PORT}`);
 
 async function connectDB() {
   try {
@@ -43,12 +41,12 @@ app.use(session({
   store: redisStore,
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  name:"dashboard.sid",
   cookie: {
-    httpOnly: isProduction,             // prevent client-side JS access
+    httpOnly: true,             // prevent client-side JS access
     secure: isProduction,                // must be true on HTTPS
     sameSite: isProduction ? 'none' : 'lax',            // required for cross-site requests
-    domain: isProduction ? '.onrender.com' : undefined,     // allows sharing between subdomains
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   }
