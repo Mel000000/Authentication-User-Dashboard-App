@@ -10,7 +10,6 @@ const csrfInstance = doubleCsrf({
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
     path: "/",
-    domain: isProduction ? ".onrender.com" : undefined,
   },
   size: 64,
   getTokenFromRequest: (req) => req.headers["x-csrf-token"],
