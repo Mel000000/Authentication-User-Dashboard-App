@@ -56,7 +56,7 @@ app.use(cookieParser());
 const allowedOrigin = "http://localhost:5173"; // Adjust this to match your frontend URL in development and production
 
 app.use(cors({
-  origin: allowedOrigin, 
+  origin: viteApiBaseUrl || allowedOrigin, 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"]
