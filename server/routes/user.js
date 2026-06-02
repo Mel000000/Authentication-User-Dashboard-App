@@ -229,6 +229,18 @@ router.post("/loginUser",/* doubleCsrfProtection,*/ async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
+    
+    // After successful authentication, create/initialize session
+    if (!req.session.userId) {
+      req.session.userId = user._id;
+      req.session.email = user.email;
+      await new Promise((resolve, reject) => {
+        req.session.save(err => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    }
 
     const payload = {
       userId: user._id,
