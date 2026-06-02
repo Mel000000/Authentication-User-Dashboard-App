@@ -4,7 +4,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const csrfInstance = doubleCsrf({
   getSecret: (req) => process.env.CSRF_SECRET,
   getSessionIdentifier: (req) => req.sessionID,
-  cookieName: isProduction ? "__Host-csrf" : "csrf",
+  cookieName: isProduction ? "csrf-token-prod" : "csrf-token-dev",
   cookieOptions: {
     httpOnly: true,
     secure: isProduction,
