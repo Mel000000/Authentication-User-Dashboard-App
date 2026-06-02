@@ -21,6 +21,8 @@ const uri = process.env.MONGODB_URI;
 const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
 const PORT = process.env.PORT || 3000;
 
+console.log(`👉 NODE_ENV: ${process.env.NODE_ENV}, isProduction: ${isProduction}, PORT: ${PORT}`);
+
 async function connectDB() {
   try {
     await mongoose.connect(uri, {dbName: "Authentication-User-Dashboard-App"  });
