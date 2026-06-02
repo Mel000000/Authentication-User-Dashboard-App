@@ -7,25 +7,22 @@ import { toast, ToastContainer } from 'react-toastify';
 import apiClient from '../api/apiClient';
 import 'react-toastify/dist/ReactToastify.css';
 
-function VerifyCard({
-  title = "Reset Password",
-  buttonText = "Verify",
-  submitForVerifyEmail = false,
-  registrationData = null
-}) {
+function VerifyCard() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const stateData = location.state || {};
-  const finalSubmitMode = stateData.submitForVerifyEmail || submitForVerifyEmail;
+
+  const finalSubmitMode = stateData.submitForVerifyEmail || false;
   const initialEmail = stateData.email || '';
+  const title = stateData.title || (finalSubmitMode ? "Verify Your Email" : "Reset Password");
+  const buttonText = stateData.buttonText || (finalSubmitMode ? "Complete Registration" : "Verify");
 
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const validCode = () => code && code.length === 6;
   const validEmail = () => email && email.includes('@');
+  const validCode = () => code && code.length === 6;
 
   const handleSendCode = async (e) => {
     e.preventDefault();
@@ -39,13 +36,12 @@ function VerifyCard({
       await sendMail(email, mode);
       toast.success("Verification code sent!");
     } catch (error) {
-      // Check for rate‑limit error (429) or custom error message from backend
       let errorMsg = "Failed to send code";
       if (error.response) {
         if (error.response.status === 429) {
-          errorMsg = "Too many code requests. Please wait an hour before trying again.";
+          errorMsg = "Too many code requests. Please wait an hour.";
         } else if (error.response.data) {
-          errorMsg = error.response.data; // backend returns plain string or { error: ... }
+          errorMsg = error.response.data;
         }
       } else if (error.message) {
         errorMsg = error.message;
@@ -62,46 +58,20 @@ function VerifyCard({
 
     setLoading(true);
 
-    // --- PIPELINE A: SIGNUP / USER CREATION ---
     if (finalSubmitMode) {
-      const signupPayload = registrationData || stateData;
-      const { username, password, country, profileImageFile } = signupPayload;
-
+      // --- SIGNUP VERIFICATION ---
       try {
-        // verify the code —> backend flips email_verified to true on the placeholder
         await verifyCode(email, code, "signup");
-
-        // upsert the placeholder with full profile data
-        const response = await createUser({ email, password, username, country });
-
-        if (response) {
-          if (profileImageFile) {
-            const formData = new FormData();
-            formData.append('profileImage', profileImageFile);
-            try {
-              // Separate API call for image upload to handle multipart/form-data
-              await apiClient.post('/profile/upload-profile-image', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-              });
-            } catch (uploadError) {
-              console.warn("Avatar upload failed:", uploadError);
-              toast.warning("Account created, but your avatar upload encountered an error.");
-            }
-          }
-
-          toast.success(`Welcome to the community, ${username || 'User'}!`);
-          setTimeout(() => navigate('/'), 1000);
-        }
+        toast.success("Email verified! You can now log in.");
+        setTimeout(() => navigate('/'), 1500);
       } catch (error) {
-        console.error("Registration pipeline error:", error);
-        let errorMsg = "Code invalid or registration failed.";
+        console.error("Verification error:", error);
+        let errorMsg = "Invalid code or verification failed.";
         if (error.response) {
           if (error.response.status === 429) {
-            errorMsg = "Too many verification attempts. Please wait 15 minutes.";
+            errorMsg = "Too many attempts. Please wait 15 minutes.";
           } else if (error.response.data) {
-            errorMsg = typeof error.response.data === 'string' 
-              ? error.response.data 
-              : (error.response.data.error || errorMsg);
+            errorMsg = error.response.data;
           }
         }
         toast.error(errorMsg);
@@ -111,7 +81,7 @@ function VerifyCard({
       return;
     }
 
-    // --- PIPELINE B: PASSWORD RESET ---
+    // --- PASSWORD RESET VERIFICATION ---
     try {
       const { resetToken } = await verifyCode(email, code, "reset");
       toast.success("Code verified! Redirecting...");
@@ -122,11 +92,9 @@ function VerifyCard({
       let errorMsg = "Invalid verification code. Please try again.";
       if (error.response) {
         if (error.response.status === 429) {
-          errorMsg = "Too many verification attempts. Please wait 15 minutes.";
+          errorMsg = "Too many attempts. Please wait 15 minutes.";
         } else if (error.response.data) {
-          errorMsg = typeof error.response.data === 'string'
-            ? error.response.data
-            : (error.response.data.error || errorMsg);
+          errorMsg = error.response.data;
         }
       }
       toast.error(errorMsg);

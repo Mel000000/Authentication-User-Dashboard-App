@@ -38,6 +38,48 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+router.post("/upload-profile-image-temporary-user", upload.single('profileImage'), async (req, res) => {
+  try{
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const {email} = req.body;
+    if(!email){
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    const user = await User.findOne({ email });
+    if(!user){
+      return res.status(404).json({ error: 'User not found' });
+    }
+      // Convert buffer to base64 and upload to Cloudinary
+      const b64 = Buffer.from(req.file.buffer).toString('base64');
+      const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+      
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: 'user_profiles',
+        transformation: [
+          { width: 500, height: 500, crop: 'limit' },
+          { quality: 'auto' },
+          { fetch_format: 'auto' }
+        ]
+      });
+
+      // Update user with new image
+      user.profileImageUrl = result.secure_url;
+      user.profileImagePublicId = result.public_id;
+      await user.save();
+
+      res.status(200).json({
+        message: 'Profile image uploaded successfully',
+        profileImageUrl: result.secure_url
+      });
+
+  }catch(error){
+    console.error("Error adding profile image to cookie:", error);
+    res.status(500).json({ error: "Failed to add profile image to cookie" });
+  }
+});
+
 // Upload profile image
 router.post('/upload-profile-image', auth, upload.single('profileImage'), async (req, res) => {
   try {

@@ -1,5 +1,6 @@
 import apiClient from "./apiClient";
 
+
 export const createUser = async (userData) => {
   try {
     const res = await apiClient.post("/user/createUser", userData); 
@@ -13,7 +14,6 @@ export const createUser = async (userData) => {
 export const loginUser = async (loginData) => {
   try {
     const res = await apiClient.post("/user/loginUser", loginData);
-    
     return res.data;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -29,7 +29,6 @@ export const getCurrentUser = async (explicitToken=null) => {
         Authorization: `Bearer ${explicitToken}`
       };
     }
-
     const res = await apiClient.get("/user/me", config);
     return res.data;
   } catch (error) {
@@ -84,13 +83,12 @@ export const uploadProfileImage = async (imageFile) => {
   }
 };
 
-// seperate API call for editing the profile image, since it requires multipart/form-data
-export const changeProfileImage = async () => {
-  try {    
-    const res = await apiClient.delete('/profile/change-profile-image');
+export const storeRegistrationData = async (data) => {
+  try{
+    const res = await apiClient.post("/user/storeRegistrationData", data);
     return res.data;
-  } catch (error) {
-    console.error("Error changing profile image:", error);
+  }catch(error){
+    console.error("Error storing registration data:", error);
     throw error;
   }
 };

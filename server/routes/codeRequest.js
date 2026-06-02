@@ -4,10 +4,15 @@ const { sendMail } = require("../controllers/emailSender.js");
 const User = require("../models/user");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
 const router = express.Router();
+const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
+
+router.use(helmet());
+
 
 // Endpoint to request a verification code
-router.post("/", async (req, res) => {
+router.post("/", doubleCsrfProtection, async (req, res) => {
   const { email, mode } = req.body;
 
   if (!email) return res.status(400).send("Email is required");
@@ -54,8 +59,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Endpoint to verify the code
-router.post("/verifyCode", async (req, res) => {
+// Endpoint to verify the code and either complete signup or issue reset token
+router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
   const { email, userCode, mode } = req.body;
 
   if (!email || !userCode) {
@@ -76,16 +81,44 @@ router.post("/verifyCode", async (req, res) => {
     }
 
     if (mode === "signup") {
-      // FIX: flip email_verified to true here so createUser upsert works correctly
       user.email_verified = true;
       user.verifyCode = null;
       user.verifyCodeExpires = null;
       await user.save();
-      return res.status(200).send("Code verified successfully");
+      // set cookies so the users is immediatly logged in
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      const jwtToken = jwt.sign(
+        { userId: user._id, email: user.email, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      const isProduction = process.env.NODE_ENV === "production";
+      res.cookie("token", jwtToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      const userResponse = {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        country: user.country,
+        profileImageUrl: user.profileImageUrl,
+      };
+
+      return res.status(200).json({
+        message: "Verification successful, logged in",
+        user: userResponse,
+      });
     }
 
     if (mode === "reset") {
-      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET_RESET_PASSWORD, { expiresIn: '15m' });
       user.verifyCode = null;
       user.verifyCodeExpires = null;
       await user.save();
@@ -100,7 +133,7 @@ router.post("/verifyCode", async (req, res) => {
 });
 
 // Reset password endpoint
-router.post("/resetPassword", async (req, res) => {
+router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
   const { email, newPassword } = req.body;
   const resetToken = req.query.token;
 
@@ -110,7 +143,7 @@ router.post("/resetPassword", async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET_PASSWORD);
     if (!decoded || decoded.email !== email) {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }

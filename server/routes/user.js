@@ -2,12 +2,62 @@ const express = require("express");
 const axios = require("axios");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const helmet = require("helmet");
 const User = require("../models/user");
 const { createUserSchema } = require("../models/userZSchema");
 const auth = require("../middleware/auth");
 const { deleteImageFromCloudinary } = require("../config/cloudinary");
+const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
+const isProduction = process.env.NODE_ENV === 'production';
 
 const router = express.Router();
+
+router.use(helmet());
+
+// Helper function to verify CAPTCHA token with Google's API
+async function verifyCaptcha(token) {
+  if (!token || typeof token !== 'string' || token.length < 20) {
+    return false;
+  }
+
+  try {
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
+      null,
+      {
+        params: {
+          secret: process.env.CAPTCHA_SECRET,
+          response: token
+        },
+        timeout: 10000
+      }
+    );
+
+    if (response.data.success === true) {
+      return true;
+    } else {
+      console.log("CAPTCHA failed with errors:", response.data['error-codes']);
+      return false;
+    }
+  } catch (error) {
+    console.error("CAPTCHA verification error:", error.message);
+    return false;
+  }
+}
+
+router.get("/csrf-token", (req, res) => {
+  try {
+    res.clearCookie("X-CSRF-Token");
+    res.clearCookie("__Host-csrf");
+    res.clearCookie("csrf-token");
+
+    const token = generateToken(req, res, true);
+    res.json({ csrfToken: token });
+  } catch (err) {
+    console.error("CSRF token generation error:", err);
+    res.status(500).json({ error: "Could not generate CSRF token" });
+  }
+});
 
 // Get current user (protected route)
 router.get("/me", auth, async (req, res) => {
@@ -24,17 +74,46 @@ router.get("/me", auth, async (req, res) => {
 });
 
 // Logout endpoint
-router.post("/logout", (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none'
-  });
-  res.json({ message: "Logged out successfully" });
+router.post("/logout",doubleCsrfProtection,(req, res) => {                     
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
+    });
+    res.json({ message: "Logged out successfully" });
+  }
+);
+
+// Endpoint that recieves user data from the front and stores it for the createUser route to complete the registration after email verification
+router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) => {
+  const { email, password, username, country } = req.body;
+  if (!email || !password || !username || !country) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+  try {    
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const placeholderUser = new User({
+      email,
+      password: hashedPassword,
+      username,
+      country,
+      email_verified: false,
+      profileImageUrl: `https://ui-avatars.com/api/?background=667eea&color=fff&rounded=true&size=150&bold=true&name=${encodeURIComponent(username)}`,
+    });
+    await placeholderUser.save();
+    res.json({ message: "Registration data stored successfully" });
+  } catch (err) {
+    console.error("Error storing registration data:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // Endpoint to create / complete a new user after email verification
-router.post("/createUser", async (req, res) => {
+router.post("/createUser", doubleCsrfProtection, async (req, res) => {
   const parsed = createUserSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -45,7 +124,7 @@ router.post("/createUser", async (req, res) => {
   try {
     const existingUser = await User.findOne({ email: parsed.data.email });
 
-    // FIX: block only if a *verified* user already exists (not the placeholder we created)
+    // FIX: block only if a *verified* user already exists
     if (existingUser && existingUser.email_verified && existingUser.password) {
       return res.status(400).json({ error: "Email already in use" });
     }
@@ -86,8 +165,8 @@ router.post("/createUser", async (req, res) => {
 
     res.cookie('token', jwtToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -111,37 +190,8 @@ router.post("/createUser", async (req, res) => {
   }
 });
 
-async function verifyCaptcha(token) {
-  if (!token || typeof token !== 'string' || token.length < 20) {
-    return false;
-  }
-
-  try {
-    const response = await axios.post(
-      "https://www.google.com/recaptcha/api/siteverify",
-      null,
-      {
-        params: {
-          secret: process.env.CAPTCHA_SECRET,
-          response: token
-        },
-        timeout: 10000
-      }
-    );
-
-    if (response.data.success === true) {
-      return true;
-    } else {
-      console.log("CAPTCHA failed with errors:", response.data['error-codes']);
-      return false;
-    }
-  } catch (error) {
-    console.error("CAPTCHA verification error:", error.message);
-    return false;
-  }
-}
-
-router.post("/loginUser", async (req, res) => {
+// Login endpoint
+router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
   const { email, password, token: captchaToken } = req.body;
 
   if (!email || !password) {
@@ -178,8 +228,8 @@ router.post("/loginUser", async (req, res) => {
 
     res.cookie("token", jwtToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -202,7 +252,8 @@ router.post("/loginUser", async (req, res) => {
   }
 });
 
-router.delete("/delete", auth, async (req, res) => {
+// Delete user account endpoint
+router.delete("/delete", doubleCsrfProtection, auth, async (req, res) => {
   try {
     const email = req.body.email;
     if (!email) {
@@ -237,7 +288,8 @@ router.delete("/delete", auth, async (req, res) => {
   }
 });
 
-router.put("/updateProfile", auth, async (req, res) => {
+// Update user profile endpoint
+router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
   try {
     const { username, country, email } = req.body;
     const user = await User.findOne({ email: req.user.email });
@@ -259,6 +311,7 @@ router.put("/updateProfile", auth, async (req, res) => {
   }
 });
 
+// Get logged-in user info (protected route)
 router.get("/loggedIn", auth, async (req, res) => {
   try {
     const { email } = req.user;
