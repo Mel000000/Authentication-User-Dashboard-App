@@ -40,14 +40,14 @@ app.use(
     store: redisStore,
     secret: process.env.SESSION_SECRET || "your-session-secret", // add SESSION_SECRET to .env
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
       domain:".onrender.com",
       path: "/",
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   })
 );
