@@ -36,7 +36,7 @@ connectDB();
 const app = express()
 
 app.use(session({
-  store: redisStore,
+  // store: redisStore,
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
