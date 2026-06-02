@@ -97,7 +97,7 @@ router.post("/logout",doubleCsrfProtection,(req, res) => {
 );
 
 // Endpoint that recieves user data from the front and stores it for the createUser route to complete the registration after email verification
-router.post("/storeRegistrationData",/* doubleCsrfProtection ,*/ async (req, res) => {
+router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) => {
   const { email, password, username, country } = req.body;
   if (!email || !password || !username || !country) {
     return res.status(400).json({ error: "All fields are required" });
@@ -125,7 +125,7 @@ router.post("/storeRegistrationData",/* doubleCsrfProtection ,*/ async (req, res
 });
 
 // Endpoint to create / complete a new user after email verification
-router.post("/createUser",/* doubleCsrfProtection,*/ async (req, res) => {
+router.post("/createUser",doubleCsrfProtection,async (req, res) => {
   const parsed = createUserSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -203,7 +203,7 @@ router.post("/createUser",/* doubleCsrfProtection,*/ async (req, res) => {
 });
 
 // Login endpoint
-router.post("/loginUser",/* doubleCsrfProtection,*/ async (req, res) => {
+router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
   const { email, password, token: captchaToken } = req.body;
 
   if (!email || !password) {
@@ -228,18 +228,6 @@ router.post("/loginUser",/* doubleCsrfProtection,*/ async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
-    }
-    
-    // After successful authentication, create/initialize session
-    if (!req.session.userId) {
-      req.session.userId = user._id;
-      req.session.email = user.email;
-      await new Promise((resolve, reject) => {
-        req.session.save(err => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
     }
 
     const payload = {

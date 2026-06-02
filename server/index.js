@@ -39,7 +39,7 @@ app.use(session({
   store: redisStore,
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
   cookie: {
     httpOnly: true,
     secure: true,                // must be true on HTTPS
