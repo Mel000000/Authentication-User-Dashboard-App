@@ -339,4 +339,21 @@ router.get("/loggedIn", auth, async (req, res) => {
   }
 });
 
+router.get('/auth/status', (req, res) => {
+  const token = req.cookies.token;
+  isValidToken = (token) => {
+    try {
+      jwt.verify(token, process.env.JWT_SECRET);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  };
+  if (token && isValidToken(token)) {
+    res.json({ authenticated: true });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
 module.exports = router;

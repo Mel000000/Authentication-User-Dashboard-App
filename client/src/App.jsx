@@ -11,8 +11,9 @@ import HomePage from './pages/homePage.jsx';
 import LoginPage from './pages/loginPage.jsx';
 import ResetPasswordPage from './pages/resetPasswordPage.jsx';
 import VerifyEmailPage from './pages/verifyEmailPage.jsx';
+import { AuthProvider } from './helper/AuthContext.jsx';
 import {Toaster} from "react-hot-toast";
-
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 const router = createBrowserRouter([
   {
@@ -36,17 +37,22 @@ const router = createBrowserRouter([
     element: <VerifyEmailPage />
   },
   {
-    path: "/home",
-    element: <HomePage/>
+    element: <ProtectedRoute />,
+    children: [
+      {
+      path: "/home",
+      element: <HomePage/>,
+      }
+    ]
   }
 ]);
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Toaster position="top-right"/>
       <RouterProvider router={router} />
-    </>
+    </AuthProvider>
   )
 }
 

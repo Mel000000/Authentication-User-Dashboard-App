@@ -92,3 +92,13 @@ export const storeRegistrationData = async (data) => {
     throw error;
   }
 };
+
+export const authStatus = async () => {
+  try {
+    const res = await apiClient.get("/user/auth/status");
+    return res.data.authenticated;
+  } catch (error) {
+    console.error("Error checking auth status:", error);
+    return false; // Assume not authenticated on error
+  }
+};
