@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 const User = require("../../server/models/user");
+const { deleteImageFromCloudinary } = require("../../server/config/cloudinary.js");
+const path = require("path");
+const dotenv = require("dotenv");
+dotenv.config({ path: path.resolve(__dirname, '../../.env') }); // Load .env file
 
 const uri = process.env.MONGODB_URI;
 
@@ -20,8 +24,17 @@ const fetchUsersWithUnverifiedEmailsAndDelete = async () =>{
   for (const user of users) {
     if (!user.email_verified) {
       try {
+        if (user.profileImagePublicId) {
+          try {
+            await deleteImageFromCloudinary(user.profileImagePublicId);
+            console.log(`Deleted profile image for user with unverified email: ${user.email}`);
+          } catch (cloudinaryError) {
+            console.error("Error deleting profile image from Cloudinary:", cloudinaryError);
+          }
+        }
         await User.deleteOne({ _id: user._id });
         console.log(`Deleted user with unverified email: ${user.email}`);
+
       } catch (err) {
         console.error(`Error deleting user ${user.email}:`, err);
       }
