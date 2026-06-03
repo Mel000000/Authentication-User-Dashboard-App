@@ -36,7 +36,7 @@ async function verifyCaptcha(token) {
     if (response.data.success === true) {
       return true;
     } else {
-      console.log("CAPTCHA failed with errors:", response.data['error-codes']);
+      console.error("CAPTCHA failed with errors:", response.data['error-codes']);
       return false;
     }
   } catch (error) {
@@ -336,6 +336,23 @@ router.get("/loggedIn", auth, async (req, res) => {
   } catch (err) {
     console.error("Error fetching logged-in user:", err);
     res.status(500).json({ error: "Failed to fetch logged-in user" });
+  }
+});
+
+router.get('/auth/status', (req, res) => {
+  const token = req.cookies.token;
+  isValidToken = (token) => {
+    try {
+      jwt.verify(token, process.env.JWT_SECRET);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  };
+  if (token && isValidToken(token)) {
+    res.json({ authenticated: true });
+  } else {
+    res.json({ authenticated: false });
   }
 });
 

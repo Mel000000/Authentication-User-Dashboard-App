@@ -1,8 +1,6 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  // baseURL: "https://authentication-user-dashboard-app-backend.onrender.com/api", // Production backend URL
-  // baseURL: "http://localhost:3000/api", // Development backend URL
   baseURL:  import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {'Content-Type': 'application/json',},
