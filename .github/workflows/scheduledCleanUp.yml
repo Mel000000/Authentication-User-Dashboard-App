@@ -1,0 +1,16 @@
+name: Scheduled Clean-Up
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: '0 0 1 * *' # runs ones every month to avoid costs but should be run more often
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Run cleanup script
+              run: node .github/scripts/cleanUp.js
+
+
+

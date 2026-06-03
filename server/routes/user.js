@@ -36,7 +36,7 @@ async function verifyCaptcha(token) {
     if (response.data.success === true) {
       return true;
     } else {
-      console.log("CAPTCHA failed with errors:", response.data['error-codes']);
+      console.error("CAPTCHA failed with errors:", response.data['error-codes']);
       return false;
     }
   } catch (error) {
