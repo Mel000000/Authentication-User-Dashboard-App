@@ -6,11 +6,25 @@ on:
         - cron: '0 0 1 * *' # runs ones every month to avoid costs but should be run more often
 
 jobs:
-    test:
+    cleanUp:
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+               node-version: '20'
+
+            - name: Install dependencies
+              run: npm ci
+              working-directory: .github/scripts
+
             - name: Run cleanup script
               run: node .github/scripts/cleanUp.js
+              env:
+                GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
 
 
