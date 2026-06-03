@@ -24,7 +24,10 @@ jobs:
             - name: Run cleanup script
               run: node .github/scripts/cleanUp.js
               env:
-                GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+                MONGODB_URI: ${{ secrets.MONGODB_URI }}
+                # Non-sensitive variables can be set directly:
+                DRY_RUN: false
+                LOG_LEVEL: info
 
 
 
