@@ -22,4 +22,26 @@ const deleteImageFromCloudinary = async (publicId) => {
   }
 };
 
-module.exports = { cloudinary, deleteImageFromCloudinary };
+const uploadImageToCloudinary = async (fileBuffer, fileType) => {
+  try {
+    const b64 = Buffer.from(fileBuffer).toString('base64');
+    const dataURI = `data:${fileType};base64,${b64}`;
+    
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'user_profiles',
+      transformation: [
+        { width: 500, height: 500, crop: 'limit' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    });
+    return result;
+  } catch (error) {
+    console.error("Error uploading image to Cloudinary:", error);
+    throw error;
+  }
+};
+
+
+
+module.exports = { cloudinary, deleteImageFromCloudinary, uploadImageToCloudinary };
