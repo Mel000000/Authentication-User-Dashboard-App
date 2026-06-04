@@ -5,18 +5,10 @@ const multer = require('multer');
 const { v2: cloudinary } = require('cloudinary');
 const User = require('../models/user');
 const auth = require('../middleware/auth');
+const { uploadImageToCloudinary, deleteImageFromCloudinary } = require('../config/cloudinary');
 const path = require('path');
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
-});
-
-// Use memory storage (no CloudinaryStorage needed)
-const storage = multer.memoryStorage();
+storage = multer.memoryStorage();
 
 // File filter for images
 const fileFilter = (req, file, cb) => {
@@ -51,20 +43,8 @@ router.post("/upload-profile-image-temporary-user", upload.single('profileImage'
     if(!user){
       return res.status(404).json({ error: 'User not found' });
     }
-      // Convert buffer to base64 and upload to Cloudinary
-      const b64 = Buffer.from(req.file.buffer).toString('base64');
-      const dataURI = `data:${req.file.mimetype};base64,${b64}`;
-      
-      const result = await cloudinary.uploader.upload(dataURI, {
-        folder: 'user_profiles',
-        transformation: [
-          { width: 500, height: 500, crop: 'limit' },
-          { quality: 'auto' },
-          { fetch_format: 'auto' }
-        ]
-      });
+      const result = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype);
 
-      // Update user with new image
       user.profileImageUrl = result.secure_url;
       user.profileImagePublicId = result.public_id;
       await user.save();
@@ -95,24 +75,14 @@ router.post('/upload-profile-image', auth, upload.single('profileImage'), async 
     // Delete old image from Cloudinary if it exists
     if (user.profileImagePublicId) {
       try {
-        await cloudinary.uploader.destroy(user.profileImagePublicId);
+        await deleteImageFromCloudinary(user.profileImagePublicId);
       } catch (err) {
         console.error('Error deleting old image:', err);
       }
     }
 
-    // Convert buffer to base64 and upload to Cloudinary
-    const b64 = Buffer.from(req.file.buffer).toString('base64');
-    const dataURI = `data:${req.file.mimetype};base64,${b64}`;
     
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'user_profiles',
-      transformation: [
-        { width: 500, height: 500, crop: 'limit' },
-        { quality: 'auto' },
-        { fetch_format: 'auto' }
-      ]
-    });
+    const result = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype);
 
     // Update user with new image
     user.profileImageUrl = result.secure_url;
@@ -130,7 +100,7 @@ router.post('/upload-profile-image', auth, upload.single('profileImage'), async 
 });
 
 // Delete profile image
-router.delete('/delete-profile-image', auth, async (req, res) => {
+router.delete('/delete-profile-image', auth, upload.single('profileImage'), async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);
     if (!user) {
@@ -140,7 +110,7 @@ router.delete('/delete-profile-image', auth, async (req, res) => {
     // Delete from Cloudinary if exists
     if (user.profileImagePublicId) {
       try {
-        await cloudinary.uploader.destroy(user.profileImagePublicId);
+        await deleteImageFromCloudinary(user.profileImagePublicId);
         console.log('Image deleted:', user.profileImagePublicId);
       } catch (err) {
         console.error('Error deleting image:', err);

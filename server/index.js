@@ -54,9 +54,6 @@ app.use(session({
 
 app.use(cookieParser());
 
-//const allowedOrigin = viteApiBaseUrl // Adjust this to match your frontend URL in development and production
-//const allowedOrigin = viteApiBaseUrl || "http://localhost:5173"; // Adjust this to match your frontend URL in development and production
-
 app.use(cors({
   origin: isProduction ? viteApiBaseUrl : "http://localhost:5173", // Allow all origins in development, restrict in production
   credentials: true,
@@ -69,7 +66,7 @@ app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodie
 
 
 // Apply rate limiters only in production to avoid hindering development and testing
-/*if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
   app.use("/api/",generalLimiter);
 
   app.use('/api/codeRequest', emailLimiter);                // limits POST to /codeRequest
@@ -77,7 +74,7 @@ app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodie
   app.use('/api/user/loginUser', authLimiter);              // limits POST login
   app.use('/api/user/createUser', authLimiter);             // limits POST createUser
 
-}*/
+}
 
 
 // Routes that are server API endpoints
