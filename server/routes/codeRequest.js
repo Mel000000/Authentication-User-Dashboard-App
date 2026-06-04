@@ -15,7 +15,7 @@ router.use(helmet());
 router.post("/", doubleCsrfProtection, async (req, res) => {
   const { email, mode } = req.body;
 
-  if (!email) return res.status(400).send("Email is required");
+  if (!email) return res.status(400).json({ error: "Email is required" });
 
   try {
     const user = await User.findOne({ email });
@@ -25,7 +25,7 @@ router.post("/", doubleCsrfProtection, async (req, res) => {
 
     if (mode === "signup") {
       if (user && user.email_verified) {
-        return res.status(400).send("Email already in use and verified");
+        return res.status(400).json({ error: "Email already in use and verified" });
       }
 
       // If an unverified placeholder exists, update it; otherwise create one
@@ -51,11 +51,11 @@ router.post("/", doubleCsrfProtection, async (req, res) => {
     }
 
     await sendMail(email, code);
-    return res.status(200).send("Verification email sent");
+    return res.status(200).json({ message: "Verification email sent" });
 
   } catch (err) {
     console.error("Mail error:", err);
-    return res.status(500).send("Failed to send email");
+    return res.status(500).json({ error: "Failed to send email" });
   }
 });
 
@@ -64,20 +64,20 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
   const { email, userCode, mode } = req.body;
 
   if (!email || !userCode) {
-    return res.status(400).send("Email and code are required");
+    return res.status(400).json({ error: "Email and code are required" });
   }
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).send("User not found or verification session expired");
+    if (!user) return res.status(404).json({ error: "User not found or verification session expired" });
 
     if (user.verifyCodeExpires < new Date()) {
-      return res.status(400).send("Code expired. Request a new one.");
+      return res.status(400).json({ error: "Code expired. Request a new one." });
     }
 
     const isMatch = await bcrypt.compare(userCode, user.verifyCode);
     if (!isMatch) {
-      return res.status(400).send("Invalid code");
+      return res.status(400).json({ error: "Invalid code" });
     }
 
     if (mode === "signup") {
@@ -125,17 +125,16 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
       return res.json({ resetToken });
     }
 
-    return res.status(400).send("Unknown mode");
+    return res.status(400).json({ error: "Unknown mode" });
   } catch (err) {
     console.error("Verification error:", err);
-    return res.status(500).send("Internal server error during verification");
+    return res.status(500).json({ error: "Internal server error during verification" });
   }
 });
 
 // Reset password endpoint
 router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
-  const { email, newPassword } = req.body;
-  const resetToken = req.query.token;
+  const { email, newPassword, resetToken } = req.body;
 
   // FIX: validate inputs before verifying token so we fail fast on bad payloads
   if (!email || !newPassword || newPassword.length < 6) {

@@ -32,3 +32,4 @@ export const getCountryFlag = async (countryName) => {
     return null; // Return null if there's an error fetching the flag
   }
 };
+

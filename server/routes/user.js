@@ -90,8 +90,8 @@ router.get("/me", auth, async (req, res) => {
 router.post("/logout",doubleCsrfProtection,(req, res) => {                     
     res.clearCookie("token", {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none'
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax'
     });
     res.json({ message: "Logged out successfully" });
   }
@@ -122,84 +122,6 @@ router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) =>
   } catch (err) {
     console.error("Error storing registration data:", err);
     res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// Endpoint to create / complete a new user after email verification
-router.post("/createUser",doubleCsrfProtection,async (req, res) => {
-  const parsed = createUserSchema.safeParse(req.body);
-
-  if (!parsed.success) {
-    console.log("Zod validation failed:", parsed.error.errors);
-    return res.status(400).json({ error: "Invalid input", details: parsed.error.errors });
-  }
-
-  try {
-    const existingUser = await User.findOne({ email: parsed.data.email });
-
-    // FIX: block only if a *verified* user already exists
-    if (existingUser && existingUser.email_verified && existingUser.password) {
-      return res.status(400).json({ error: "Email already in use" });
-    }
-
-    const hashedPassword = await bcrypt.hash(parsed.data.password, 10);
-    const imageUrl = `https://ui-avatars.com/api/?background=667eea&color=fff&rounded=true&size=150&bold=true&name=${encodeURIComponent(parsed.data.username)}`;
-
-    let user;
-    if (existingUser) {
-      // FIX: upsert — fill in the placeholder row created during code-send
-      existingUser.password = hashedPassword;
-      existingUser.username = parsed.data.username;
-      existingUser.country = parsed.data.country;
-      existingUser.profileImageUrl = imageUrl;
-      existingUser.profileImagePublicId = null;
-      // email_verified was already set to true by the verifyCode route
-      user = existingUser;
-    } else {
-      // Fallback: create fresh (e.g. if placeholder was somehow lost)
-      user = new User({
-        email: parsed.data.email,
-        email_verified: true,
-        password: hashedPassword,
-        username: parsed.data.username,
-        country: parsed.data.country,
-        profileImageUrl: imageUrl,
-        profileImagePublicId: null,
-      });
-    }
-
-    await user.save();
-
-    const jwtToken = jwt.sign(
-      { userId: user._id, email: user.email, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.cookie('token', jwtToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    const userResponse = {
-      id: user._id,
-      email: user.email,
-      username: user.username,
-      country: user.country,
-      profileImageUrl: user.profileImageUrl,
-      createdAt: user.createdAt
-    };
-
-    res.status(201).json({
-      message: "User created successfully",
-      token: jwtToken,
-      user: userResponse
-    });
-  } catch (err) {
-    console.error("Error creating user:", err);
-    res.status(500).json({ error: "Failed to create user" });
   }
 });
 
@@ -341,7 +263,7 @@ router.get("/loggedIn", auth, async (req, res) => {
 
 router.get('/auth/status', (req, res) => {
   const token = req.cookies.token;
-  isValidToken = (token) => {
+  const isValidToken = (token) => {
     try {
       jwt.verify(token, process.env.JWT_SECRET);
       return true;
