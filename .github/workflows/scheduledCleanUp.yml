@@ -25,7 +25,9 @@ jobs:
               run: node .github/scripts/cleanUp.js
               env:
                 MONGODB_URI: ${{ secrets.MONGODB_URI }}
-                # Non-sensitive variables can be set directly:
+                CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+                CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+                CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
                 DRY_RUN: false
                 LOG_LEVEL: info
 
