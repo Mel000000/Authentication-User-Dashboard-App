@@ -38,7 +38,6 @@ function Login() {
             const data = await loginUser(loginData);
           
             if (data && data.token) {
-                localStorage.setItem("authToken", data.token);
                 
                 const userProfile = await getCurrentUser(data.token);
                 toast.success("Login successful! Redirecting to your dashboard...", {
