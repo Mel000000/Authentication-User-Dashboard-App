@@ -16,6 +16,7 @@ function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [tokenReady, setTokenReady] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchCsrfToken(true).then(() => {
@@ -33,6 +34,7 @@ function Login() {
 
     const onSubmit = async () => {
         if (!tokenReady) return;
+        setLoading(true);
         try {
             const loginData = { email, password, token };
             const data = await loginUser(loginData);
@@ -46,14 +48,17 @@ function Login() {
                 });
                 setTimeout(() => {
                     navigate("/home");
+                    setLoading(false);
                 }, 1000);
             } else {
                 console.error("Backend authenticated you, but didn't return a 'token' property in the JSON body.");
+                setLoading(false);
             }
         }
         catch (error) {
             console.error("Login error:", error);
-            
+            setLoading(false);
+
             let errorMessage = "Login failed. Please check your credentials and try again.";
             
             if (error.response) {
@@ -67,7 +72,6 @@ function Login() {
                 // Fallback for fetch or other errors
                 errorMessage = error.message;
             }
-            
             toast.error(errorMessage, {
                 position: "top-right",
                 autoClose: 4000,
@@ -123,7 +127,7 @@ function Login() {
                     <Button 
                         variant="primary" 
                         type="submit" 
-                        disabled={!validForm()}
+                        disabled={!validForm() || loading}
                         className="w-100 py-2 fw-bold"
                         style={{ 
                             borderRadius: '0.75rem',
@@ -140,7 +144,7 @@ function Login() {
                             e.currentTarget.style.boxShadow = 'none';
                         }}
                     >
-                        Sign In
+                        Sign In {loading && <span className="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>}
                     </Button>
                 </Form>
             </Card.Body>
