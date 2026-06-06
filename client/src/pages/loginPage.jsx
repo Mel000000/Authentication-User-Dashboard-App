@@ -9,7 +9,6 @@ export default function LoginPage() {
     
     useEffect(() => {
         const res = checkLoggedInUser().then((result) => {
-            console.log("Login check result:", result);
             if (result !== null) {
                 navigate("/home");
             }

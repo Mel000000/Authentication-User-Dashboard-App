@@ -6,7 +6,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  
   useEffect(() => {
     const fetchAuthStatus = async () => {
       const authenticated = await authStatus();
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     };
     fetchAuthStatus();
   }, []);
-
+  // need to add loading guard
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, loading }}>

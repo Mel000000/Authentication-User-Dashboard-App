@@ -16,9 +16,16 @@ function RecaptchaComponent({ onVerify, token, setToken }) {
       <ReCAPTCHA
         sitekey={SITE_KEY}
         onChange={handleChange}
+        onErrored={() => {
+          console.error("reCAPTCHA failed to load");
+          setToken(null);               // clear any stale token
+        }}
         ref={recaptchaRef}
+        onExpired={() => {
+          setToken(null);
+          recaptchaRef.current?.reset();   // clears the widget
+        }}
       />
-      {token && <p className="text-success mt-2">✓ Human verified!</p>}
     </div>
   );
 }

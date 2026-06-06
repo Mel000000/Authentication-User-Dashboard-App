@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import { Container, Row, Col } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom'; // Missing import!
+import { useNavigate } from 'react-router-dom'; 
 import axios from 'axios';
 import defaultProfilePic from '../assets/default-profile-pic.jpg';
 import SignupMap from './SignupMap';
@@ -68,7 +68,7 @@ function Signup() {
         setSubmitted(true);
 
         try {
-            await storeRegistrationData({ email, username, password, country }); 
+            await storeRegistrationData({ email, username, password, country, needCookie:profileImageFile ? true : false });
             if (profileImageFile) {
                 const formData = new FormData();
                 formData.append('profileImage', profileImageFile);
