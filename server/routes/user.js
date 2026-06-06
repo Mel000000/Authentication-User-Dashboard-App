@@ -2,17 +2,15 @@ const express = require("express");
 const axios = require("axios");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const helmet = require("helmet");
 const User = require("../models/user");
-const { createUserSchema } = require("../models/userZSchema");
-const auth = require("../middleware/auth");
+const { UserSchema } = require("../models/userZSchema");
+const {auth} = require("../middleware/auth");
 const { deleteImageFromCloudinary } = require("../config/cloudinary");
 const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
 const isProduction = process.env.NODE_ENV === 'production';
 
 const router = express.Router();
 
-router.use(helmet());
 
 // Helper function to verify CAPTCHA token with Google's API
 async function verifyCaptcha(token) {
@@ -93,13 +91,15 @@ router.post("/logout",doubleCsrfProtection,(req, res) => {
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax'
     });
+    req.session.destroy();
     res.json({ message: "Logged out successfully" });
   }
 );
 
 // Endpoint that recieves user data from the front and stores it for the createUser route to complete the registration after email verification
 router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) => {
-  const { email, password, username, country } = req.body;
+  const { email, password, username, country, needCookie } = req.body;
+
   if (!email || !password || !username || !country) {
     return res.status(400).json({ error: "All fields are required" });
   }
@@ -109,16 +109,26 @@ router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) =>
       return res.status(400).json({ error: "Email already in use" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const placeholderUser = new User({
-      email,
-      password: hashedPassword,
-      username,
-      country,
-      email_verified: false,
-      profileImageUrl: `https://ui-avatars.com/api/?background=667eea&color=fff&rounded=true&size=150&bold=true&name=${encodeURIComponent(username)}`,
+    const validUser = UserSchema.parse({ 
+      email, 
+      password: hashedPassword, 
+      username, country, 
+      email_verified: false, 
+      profileImageUrl:`https://ui-avatars.com/api/?background=667eea&color=fff&rounded=true&size=150&bold=true&name=${encodeURIComponent(username)}`
     });
+    const placeholderUser = new User(validUser);
     await placeholderUser.save();
-    res.json({ message: "Registration data stored successfully" });
+    // send jwt token with the email as payload so we can identify the user in the createUser route after email verification, this token will be stored in a cookie and then deleted after we get the email from it in the createUser route
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    if (needCookie) {
+      res.cookie("tempEmail", token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      });
+    }
+    res.json({ token: token, message: "Registration data stored successfully" });
   } catch (err) {
     console.error("Error storing registration data:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -150,7 +160,7 @@ router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "User not found" });
     }
 
     const payload = {
