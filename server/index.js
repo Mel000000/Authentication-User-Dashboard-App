@@ -55,6 +55,8 @@ app.use(session({
 
 app.use(cookieParser());
 
+app.use(helmet()); // Set security-related HTTP headers
+
 app.use(cors({
   origin: isProduction ? viteApiBaseUrl : "http://localhost:5173", // Allow all origins in development, restrict in production
   credentials: true,
@@ -77,7 +79,6 @@ if (process.env.NODE_ENV === 'production') {
 
 }
 
-app.use(helmet()); // Set security-related HTTP headers
 
 // Routes that are server API endpoints
 app.use("/api/country", countryRouter);

@@ -4,11 +4,11 @@ const router = express.Router();
 const multer = require('multer');
 const { v2: cloudinary } = require('cloudinary');
 const User = require('../models/user');
-const auth = require('../middleware/auth');
+const { authTemp, auth } = require('../middleware/auth.js');
 const { uploadImageToCloudinary, deleteImageFromCloudinary } = require('../config/cloudinary');
 const path = require('path');
 
-storage = multer.memoryStorage();
+const storage = multer.memoryStorage();
 
 // File filter for images
 const fileFilter = (req, file, cb) => {
@@ -30,7 +30,7 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-router.post("/upload-profile-image-temporary-user", upload.single('profileImage'), async (req, res) => {
+router.post("/upload-profile-image-temporary-user", authTemp,upload.single('profileImage'), async (req, res) => {
   try{
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });

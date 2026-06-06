@@ -4,11 +4,8 @@ const { sendMail } = require("../controllers/emailSender.js");
 const User = require("../models/user");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const helmet = require('helmet');
 const router = express.Router();
 const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
-
-router.use(helmet());
 
 
 // Endpoint to request a verification code
@@ -41,6 +38,7 @@ router.post("/", doubleCsrfProtection, async (req, res) => {
         email_verified: false,       
         }).save();
       }
+
     } else {
       // Reset mode
       if (!user) return res.status(404).send("User not found");
