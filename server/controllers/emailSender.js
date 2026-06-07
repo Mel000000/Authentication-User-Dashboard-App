@@ -1,28 +1,38 @@
+const dotenv = require("dotenv");
 require("dotenv").config(); // load .env
-const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// controllers/emailSender.js
+const nodemailer = require('nodemailer');
 
-// Function to send email
-module.exports.sendMail = async (email,code) => {
-    try {
-      const { data, error } = await resend.emails.send({
-        from: 'onboarding@resend.dev', // Default free domain provided by Resend for testing
-        to: email,               // The user's actual email address
-        subject: 'Your Verification Code',
-        html: `
-          <h3>Your Verification Code</h3>
-          <p>Your verification code is: <strong>${code}</strong></p>
-        `
-      });
+// Create reusable transporter object using Brevo SMTP
+const transporter = nodemailer.createTransport({
+  host: process.env.BREVO_SMTP_HOST,
+  port: parseInt(process.env.BREVO_SMTP_PORT, 10),
+  secure: false, // true for 465, false for other ports (587)
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_PASS,
+  },
+});
 
-      if (error) {
-        console.error("Resend execution error details:", error);
-        throw new Error("Email delivery network issue.");
-      }
+module.exports.sendMail = async (email, code) => {
+  const mailOptions = {
+    from: `"${process.env.BREVO_FROM_NAME}" <${process.env.BREVO_FROM_EMAIL}>`,
+    to: email,
+    subject: 'Your Verification Code',
+    html: `
+      <h3>Your Verification Code</h3>
+      <p>Your verification code is: <strong>${code}</strong></p>
+    `,
+  };
 
-    } catch (error) {
-      console.error("Server catch block error:", error);
-      throw new Error("Internal server processing error.");
-    }
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    return info;
+  } catch (error) {
+    console.error('Brevo SMTP error:', error);
+    throw new Error('Failed to send email via SMTP');
+  }
 };
+
