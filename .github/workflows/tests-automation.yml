@@ -43,7 +43,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run tests
-        run: npx playwright test || true
+        run: npx playwright test
         env:
           CI: true
       

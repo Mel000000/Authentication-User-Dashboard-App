@@ -1,10 +1,12 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useState } from 'react'
+import { useState,  } from 'react'
 import ReactDOM from 'react-dom/client';
 import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
+import {checkLoggedInUser} from "./utils/authUtils.js"
+import { useNavigate } from 'react-router-dom';
 import SignupPage from './pages/signupPage.jsx';
 import ForgotPasswordPage from './pages/forgotPasswordPage.jsx';
 import HomePage from './pages/homePage.jsx';
@@ -14,6 +16,8 @@ import VerifyEmailPage from './pages/verifyEmailPage.jsx';
 import { AuthProvider } from './helper/AuthContext.jsx';
 import {Toaster} from "react-hot-toast";
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+
+
 
 const router = createBrowserRouter([
   {

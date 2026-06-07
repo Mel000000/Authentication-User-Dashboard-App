@@ -4,6 +4,7 @@ const router = express.Router();
 const multer = require('multer');
 const { v2: cloudinary } = require('cloudinary');
 const User = require('../models/user');
+const { UserSchema } = require("../models/userZSchema");
 const { authTemp, auth } = require('../middleware/auth.js');
 const { uploadImageToCloudinary, deleteImageFromCloudinary } = require('../config/cloudinary');
 const path = require('path');
@@ -30,12 +31,13 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+// uploads profile image to the temporary user during signup flow
 router.post("/upload-profile-image-temporary-user", authTemp,upload.single('profileImage'), async (req, res) => {
   try{
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    const {email} = req.body;
+    const email = req.tempEmail
     if(!email){
       return res.status(400).json({ error: 'Email is required' });
     }
@@ -44,6 +46,14 @@ router.post("/upload-profile-image-temporary-user", authTemp,upload.single('prof
       return res.status(404).json({ error: 'User not found' });
     }
       const result = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype);
+      UserSchema.parse({
+        email : user.email,
+        username: user.username,
+        country: user.country,
+        password : user.password,
+        profileImageUrl: result.secure_url,
+        profileImagePublicId: result.public_id
+      })
 
       user.profileImageUrl = result.secure_url;
       user.profileImagePublicId = result.public_id;

@@ -6,7 +6,6 @@ import RecaptchaComponent from './RecaptchaComponent.jsx';
 import { loginUser, getCurrentUser } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import {toast as hotToast} from 'react-hot-toast';
 import {fetchCsrfToken} from '../api/apiClient';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -39,9 +38,7 @@ function Login() {
             const loginData = { email, password, token };
             const data = await loginUser(loginData);
           
-            if (data && data.token) {
-                
-                const userProfile = await getCurrentUser(data.token);
+            if (data) {
                 toast.success("Login successful! Redirecting to your dashboard...", {
                     position: "top-right",
                     autoClose: 3000,
