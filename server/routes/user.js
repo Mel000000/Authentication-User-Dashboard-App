@@ -69,7 +69,6 @@ router.get("/csrf-token", async (req, res) => {
   }
 });
 
-
 // Get current user (protected route)
 router.get("/me", auth, async (req, res) => {
   try {
@@ -128,7 +127,7 @@ router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) =>
         maxAge: 15 * 60 * 1000 // 15 minutes
       });
     }
-    res.json({ token: token, message: "Registration data stored successfully" });
+    res.json({ message: "Registration data stored successfully" });
   } catch (err) {
     console.error("Error storing registration data:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -151,7 +150,7 @@ router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     if (!user.email_verified) {
@@ -160,7 +159,7 @@ router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: "User not found" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const payload = {
@@ -188,7 +187,6 @@ router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      token: jwtToken,
       user: userResponse
     });
   } catch (err) {
@@ -236,8 +234,17 @@ router.delete("/delete", doubleCsrfProtection, auth, async (req, res) => {
 // Update user profile endpoint
 router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
   try {
-    const { username, country, email } = req.body;
+    const { username, country} = req.body;
     const user = await User.findOne({ email: req.user.email });
+    const validUser = UserSchema.parse({ 
+      email: user.email,
+      password: user.password,
+      username : username ? username : user.username, 
+      country: country ? country : user.country, 
+    });
+    if (!validUser){
+      return res.status(401).json({error: "Invalid User Data"})
+    }
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -245,7 +252,6 @@ router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
 
     user.username = username || user.username;
     user.country = country || user.country;
-    user.email = email || user.email;
 
     await user.save();
 

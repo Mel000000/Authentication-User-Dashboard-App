@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser, logoutUser, deleteUserAccount, updateUserProfile } from '../api/userApi';
+import {checkLoggedInUser} from "../utils/authUtils.js"
 import { Container, Button, Card, Spinner, Row, Col, Image, Badge,Form, FormControl } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
 import apiClient from '../api/apiClient';
@@ -19,20 +20,19 @@ export default function Dashboard() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [country, setCountry] = useState('');
-  const [x, setX] = useState(20);
-  const [y, setY] = useState(0);
-  const [zoom, setZoom] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
 
 
-  useEffect(() => {
+ useEffect(() => {
+  navigate("/home")
     const fetchUser = async () => {
       try {
-        const userData = await getCurrentUser();
-        setUser(userData);
+        //const userData = await getCurrentUser();
+        const userData = await checkLoggedInUser();
+        setUser(userData.user);
         setLoading(false);
       } catch (err) {
         console.error('Auth error:', err);

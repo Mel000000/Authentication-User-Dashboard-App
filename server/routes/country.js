@@ -13,17 +13,6 @@ router.get("/all", async (req, res) => {
     }
 });
 
-// Return latitude and longitude for a given country name
-router.get("/:value", async (req, res) => {
-    try{
-        req.params.value = decodeURIComponent(req.params.value);
-        const apiEndpointRes = await axios.get("https://restcountries.com/v3.1/name/" + req.params.value);
-        res.send(apiEndpointRes.data[0].latlng);
-    } catch (error) {
-        res.status(500).send("Error fetching country data");
-    }
-});
-
 // Return flag URL for a given country name
 router.get("/flag/:countryName", async (req, res) => {
     try {
@@ -35,5 +24,17 @@ router.get("/flag/:countryName", async (req, res) => {
         res.status(500).send("Error fetching country flag");
     }
 });
+
+// Return latitude and longitude for a given country name
+router.get("/:value", async (req, res) => {
+    try{
+        req.params.value = decodeURIComponent(req.params.value);
+        const apiEndpointRes = await axios.get("https://restcountries.com/v3.1/name/" + req.params.value);
+        res.send(apiEndpointRes.data[0].latlng);
+    } catch (error) {
+        res.status(500).send("Error fetching country data");
+    }
+});
+
 
 module.exports = router;
