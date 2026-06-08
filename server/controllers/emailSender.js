@@ -1,4 +1,3 @@
-const dotenv = require("dotenv");
 require("dotenv").config(); // load .env
 
 // controllers/emailSender.js
@@ -8,7 +7,7 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   host: process.env.BREVO_SMTP_HOST,
   port: parseInt(process.env.BREVO_SMTP_PORT, 10),
-  secure: false, // true for 465, false for other ports (587)
+  secure: false, 
   auth: {
     user: process.env.BREVO_SMTP_USER,
     pass: process.env.BREVO_SMTP_PASS,
@@ -28,7 +27,6 @@ module.exports.sendMail = async (email, code) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
     return info;
   } catch (error) {
     console.error('Brevo SMTP error:', error);
