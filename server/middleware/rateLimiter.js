@@ -9,16 +9,6 @@ const keyGenerator = (req) => {
   return req.ip || req.headers['x-forwarded-for']?.split(',')[0].trim() || 'unknown';
 };
 
-const generalLimiter = rateLimit({
-    store: new RedisStore({ sendCommand, prefix: 'rl-general:' }),
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    keyGenerator,
-    message: { error: 'Too many requests, please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-
 const authLimiter = rateLimit({
     store: new RedisStore({ sendCommand, prefix: 'rl-auth:' }),
     windowMs: 15 * 60 * 1000,
