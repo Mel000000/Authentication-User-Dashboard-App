@@ -30,4 +30,4 @@ const emailLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-module.exports = { generalLimiter, authLimiter, emailLimiter };
+module.exports = { authLimiter, emailLimiter };
