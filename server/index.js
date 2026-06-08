@@ -57,12 +57,26 @@ app.use(cookieParser());
 
 app.use(helmet()); // Set security-related HTTP headers
 
-app.use(cors({
-  origin: isProduction ? viteApiBaseUrl : "http://localhost:5173", // Allow all origins in development, restrict in production
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://authentication-user-dashboard-app.onrender.com'
+    ];
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"]
-}));
+  optionsSuccessStatus: 200
+};
+
+// Apply CORS middleware globally
+app.use(cors(corsOptions));
+
 
 app.use(express.json()); // parse JSON request bodies
 app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodies
