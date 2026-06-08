@@ -61,7 +61,7 @@ This application is fully decoupled and distributed on **Render**:
 ---
 
 <div align="center">
-  <img src="./readmeAssets/CreatingUser.gif" width="700" alt="Creating User Video"/>
+  // needs to be added
 </div>
 <div align="center">
   <em>Demonstration of signup with country selection and profile image upload</em>
