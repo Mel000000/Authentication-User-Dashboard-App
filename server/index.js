@@ -84,8 +84,6 @@ app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodie
 
 // Apply rate limiters only in production to avoid hindering development and testing
 if (process.env.NODE_ENV === 'production') {
-  app.use("/api/",generalLimiter);
-
   app.use('/api/codeRequest', emailLimiter);                // limits POST to /codeRequest
   app.use('/api/codeRequest/verifyCode', authLimiter);      // limits POST /verifyCode
   app.use('/api/user/loginUser', authLimiter);              // limits POST login
