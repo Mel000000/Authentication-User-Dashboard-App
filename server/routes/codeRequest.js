@@ -49,7 +49,6 @@ router.post("/", doubleCsrfProtection, async (req, res) => {
     }
 
     await sendMail(email, code);
-    console.log(mes)
     return res.status(200).json({ message: "Verification email sent" });
 
   } catch (err) {
