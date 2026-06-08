@@ -1,36 +1,32 @@
 require("dotenv").config(); // load .env
 
-// controllers/emailSender.js
-const nodemailer = require('nodemailer');
-
-// Create reusable transporter object using Brevo SMTP
-const transporter = nodemailer.createTransport({
-  host: process.env.BREVO_SMTP_HOST,
-  port: parseInt(process.env.BREVO_SMTP_PORT, 10),
-  secure: false, 
-  auth: {
-    user: process.env.BREVO_SMTP_USER,
-    pass: process.env.BREVO_SMTP_PASS,
-  },
-});
-
 module.exports.sendMail = async (email, code) => {
-  const mailOptions = {
-    from: `"${process.env.BREVO_FROM_NAME}" <${process.env.BREVO_FROM_EMAIL}>`,
-    to: email,
-    subject: 'Your Verification Code',
-    html: `
-      <h3>Your Verification Code</h3>
-      <p>Your verification code is: <strong>${code}</strong></p>
-    `,
-  };
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': process.env.BREVO_API_KEY,
+    },
+    body: JSON.stringify({
+      sender: {
+        name: process.env.BREVO_FROM_NAME,
+        email: process.env.BREVO_FROM_EMAIL,
+      },
+      to: [{ email }],
+      subject: 'Your Verification Code',
+      htmlContent: `
+        <h3>Your Verification Code</h3>
+        <p>Your verification code is: <strong>${code}</strong></p>
+      `,
+    }),
+  });
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    return info;
-  } catch (error) {
-    console.error('Brevo SMTP error:', error);
-    throw new Error('Failed to send email via SMTP');
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Brevo API error:', response.status, errorText);
+    throw new Error('Failed to send email via Brevo API');
   }
-};
 
+  const data = await response.json();
+  return data;
+};
