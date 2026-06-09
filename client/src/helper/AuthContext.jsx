@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   // need to add loading guard
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,6 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import RecaptchaComponent from './RecaptchaComponent.jsx';
+import {useAuth} from "../helper/AuthContext.jsx"
 import { loginUser, getCurrentUser } from '../api/userApi';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
@@ -10,6 +11,7 @@ import {fetchCsrfToken} from '../api/apiClient';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
+    const {setIsAuthenticated} = useAuth()
     const navigate = useNavigate();
     const [token, setToken] = useState(null);
     const [email, setEmail] = useState('');
@@ -39,6 +41,7 @@ function Login() {
             const data = await loginUser(loginData);
           
             if (data) {
+                setIsAuthenticated(true);
                 toast.success("Login successful! Redirecting to your dashboard...", {
                     position: "top-right",
                     autoClose: 3000,
