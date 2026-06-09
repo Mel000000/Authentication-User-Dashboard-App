@@ -27,7 +27,6 @@ export default function Dashboard() {
 
 
  useEffect(() => {
-  navigate("/home")
     const fetchUser = async () => {
       try {
         //const userData = await getCurrentUser();
