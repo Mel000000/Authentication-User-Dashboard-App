@@ -36,7 +36,7 @@ connectDB();
 
 const app = express()
 
-app.set("trust proxy", true); // trust proxy for correct client IP and secure cookies behind proxies/load balancers
+app.set("trust proxy", 1); // trust 1 proxy for correct client IP and secure cookies behind proxies/load balancers
 
 app.use(session({
   store: redisStore,

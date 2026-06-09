@@ -236,12 +236,6 @@ router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
   try {
     const { username, country} = req.body;
     const user = await User.findOne({ email: req.user.email });
-    const validUser = UserSchema.parse({ 
-      email: user.email,
-      password: user.password,
-      username : username ? username : user.username, 
-      country: country ? country : user.country, 
-    });
     if (!validUser){
       return res.status(401).json({error: "Invalid User Data"})
     }
@@ -249,6 +243,13 @@ router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+    
+    const validUser = UserSchema.parse({ 
+      email: user.email,
+      password: user.password,
+      username : username ? username : user.username, 
+      country: country ? country : user.country, 
+    });
 
     user.username = username || user.username;
     user.country = country || user.country;
