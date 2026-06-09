@@ -62,8 +62,8 @@ function VerifyCard() {
       // --- SIGNUP VERIFICATION ---
       try {
         await verifyCode(email, code, "signup");
-        toast.success("Email verified! You can now log in.");
-        setTimeout(() => navigate('/'), 1500);
+        toast.success("Email verified!");
+        setTimeout(() => navigate('/home'), 1500);
       } catch (error) {
         console.error("Verification error:", error);
         let errorMsg = "Invalid code or verification failed.";
