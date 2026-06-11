@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Dropdown } from 'react-bootstrap';
-import { getCountryNameList, getCountryFlag } from '../api/countryApi';
+import { getCountryNameList} from '../api/countryApi';
 
 export default function CountrySelector({ value, onChange, disableLabel=false }) {
   const [options, setOptions] = useState([]);
@@ -12,12 +12,21 @@ export default function CountrySelector({ value, onChange, disableLabel=false })
     
     (async () => {
       try {
-        const names = await getCountryNameList();
-        const sortedNames = names.sort((a, b) => a.localeCompare(b));
+        await getCountryNameList()
+        const countries = JSON.parse(localStorage.getItem("countries"))
+        const names = []
+        for (let i = 0; i < countries.length; i ++){
+          names.push(countries[i].name)
+        }
+        let flagUrl = null
 
-        const flagPromises = sortedNames.map(async (name) => {
+        const flagPromises = names.map(async (name) => {
           try {
-            const flagUrl = await getCountryFlag(name);
+            countries.forEach(el => {
+              if (el.name === name){
+                flagUrl = `https://geoapi.info/flags/1x1/${el.code.toLowerCase()}.svg`
+              }
+            });
             return { name, flagUrl };
           } catch (error) {
             console.error(`Error fetching flag for ${name}:`, error);
@@ -34,7 +43,7 @@ export default function CountrySelector({ value, onChange, disableLabel=false })
 
         if (mounted) {
           setCountryFlags(flagsMap);
-          setOptions(sortedNames || []);
+          setOptions(names || []);
         }
       } catch (e) {
         console.error('Failed to load country names', e);
