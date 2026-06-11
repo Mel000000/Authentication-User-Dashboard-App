@@ -24,7 +24,7 @@ function Login() {
             setTokenReady(true);
         }).catch((error) => {
             console.error("Error fetching CSRF token:", error);
-            hotToast.error("Failed to initialize login form. Please refresh the page.");
+            toast.error("Failed to initialize login form. Please refresh the page.");
         }
         );
     }, []);

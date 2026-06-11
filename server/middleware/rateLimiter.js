@@ -1,4 +1,5 @@
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = require('express-rate-limit');
 const { RedisStore } = require('rate-limit-redis');
 const redisClient = require('../config/redis');
 
@@ -32,7 +33,7 @@ const emailLimiter = rateLimit({
     store: new RedisStore({ sendCommand, prefix: 'rl-email:' }),
     windowMs: 60 * 60 * 1000,
     max: 5,
-    keyGenerator: (req) => req.body?.email || req.ip,
+    keyGenerator: (req, res) => req.body?.email || ipKeyGenerator(req, res),
     skipSuccessfulRequests: true,
     message: { error: 'Too many email requests, please wait an hour.' },
     standardHeaders: true,
