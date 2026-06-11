@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { sendMail, verifyCode } from '../api/reqCodeApi';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createUser } from '../api/userApi';
+import {fetchCsrfToken} from '../api/apiClient';
 import { toast, ToastContainer } from 'react-toastify';
 import apiClient from '../api/apiClient';
 import 'react-toastify/dist/ReactToastify.css';
@@ -20,6 +21,7 @@ function VerifyCard() {
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tokenReady, setTokenReady] = useState(false);
 
   const validEmail = () => email && email.includes('@');
   const validCode = () => code && code.length === 6;
@@ -63,7 +65,7 @@ function VerifyCard() {
       try {
         await verifyCode(email, code, "signup");
         toast.success("Email verified!");
-        setTimeout(() => navigate('/home'), 1500);
+        setTimeout(() => navigate('/'), 1500);
       } catch (error) {
         console.error("Verification error:", error);
         let errorMsg = "Invalid code or verification failed.";
