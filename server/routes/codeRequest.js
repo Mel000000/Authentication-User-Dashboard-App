@@ -127,7 +127,7 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 15 * 60 * 1000,
       })
       return res.status(200).json({message: "Password can be reset", email: user.email});
     }
@@ -142,14 +142,8 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
 // Reset password endpoint
 router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
   const { email, newPassword} = req.body;
-  const rawCookies = req.headers.cookie;
-  const parsedCookies = rawCookies.split(';').reduce((acc, cookie) => {
-    const [name, value] = cookie.trim().split('=');
-    acc[name] = value;
-    return acc;
-  }, {});
-  const resivedResetToken = parsedCookies.resetToken
-  if (!resivedResetToken){
+  const resetToken = req.cookies.resetToken;
+  if (!resetToken){
     return res.status(400).json({ error: "Invalid or expired reset token" });
   }
   if (!email || !newPassword || newPassword.length < 6) {
@@ -157,7 +151,7 @@ router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(resivedResetToken, process.env.JWT_SECRET_RESET_PASSWORD);
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET_PASSWORD);
     if (!decoded || decoded.email !== email) {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
