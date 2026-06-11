@@ -61,10 +61,9 @@ This application is fully decoupled and distributed on **Render**:
 ---
 
 <div align="center">
-  // needs to be added
-</div>
-<div align="center">
-  <em>Demonstration of signup with country selection and profile image upload</em>
+  <img src="readmeAssets/SignupFlow.gif" alt="Signup flow demonstration showing country selection and profile image upload" width="800">
+  <br>
+  <em>Demonstration of signup flow</em>
 </div>
 
 ---
