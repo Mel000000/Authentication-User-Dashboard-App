@@ -4,7 +4,6 @@ const mongoose = require("mongoose"); // MongoDB object modeling tool
 const cors = require("cors"); // allows requests from frontend (middleware)
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet'); // helps secure Express apps by setting various HTTP headers
-const countryRouter = require('./routes/country');
 const codeRequestRouter = require('./routes/codeRequest');
 const userRouter = require('./routes/user');
 const profileImageRouter = require('./routes/profileImage');
@@ -93,7 +92,6 @@ if (process.env.NODE_ENV === 'production') {
 
 
 // Routes that are server API endpoints
-app.use("/api/country", countryRouter);
 app.use("/api/codeRequest", codeRequestRouter);
 app.use("/api/user", userRouter);
 app.use("/api/profile", profileImageRouter);

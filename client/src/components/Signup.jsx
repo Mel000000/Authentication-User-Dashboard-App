@@ -52,8 +52,8 @@ function Signup() {
                 setZoom(1);
                 return;
             }
-            setX(countryData[0]);
-            setY(countryData[1]);
+            setX(countryData.Lon);
+            setY(countryData.Lat);
             setZoom(4);
         } catch (error) {
             console.error("Error fetching country location:", error);
