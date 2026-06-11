@@ -279,7 +279,7 @@ export default function Dashboard() {
                           <div>
                             <small className="text-muted d-block">Country</small>
                             {editProfile ? (
-                              <CountrySelector value={country} onChange={(countryName) => setCountry(countryName)} disableLabel={true} />
+                              <CountrySelector value={country || user.country} onChange={(countryName) => setCountry(countryName)} disableLabel={true} />
                             ) : (
                               <strong className="fs-5">{user?.country || 'Not specified'}</strong>
                             )}
