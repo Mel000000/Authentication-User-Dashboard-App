@@ -248,6 +248,10 @@ router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
       country: country ? country : user.country, 
     });
 
+    if (!validUser){
+      return res.status(400).json({ error: "Invalid data"})
+    }
+
     user.username = username || user.username;
     user.country = country || user.country;
 
