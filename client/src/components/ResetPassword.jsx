@@ -7,11 +7,12 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function ResetPasswordCard() {
   const location = useLocation();
-  const { email, resetToken } = location.state || {};
+  const { email} = location.state || {};
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
 
   const validForm = () => {
     return password.length >= 6 && password === confirmPassword;
@@ -21,14 +22,14 @@ function ResetPasswordCard() {
     e.preventDefault();
     if (!validForm() || loading) return;
 
-    if (!email || !resetToken) {
+    if (!email) {
       toast.error("Missing session data. Please restart the password reset flow.");
       return;
     }
 
     setLoading(true);
     try {
-      await resetPassword(email, password, resetToken);
+      await resetPassword(email, password);
       toast.success("Password reset successful! Redirecting to login page...", {
         position: "top-right",
         autoClose: 3000,

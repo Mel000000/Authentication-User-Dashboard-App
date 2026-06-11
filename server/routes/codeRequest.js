@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
 
+const isProduction = process.env.NODE_ENV === "production";
 
 // Endpoint to request a verification code
 router.post("/", doubleCsrfProtection, async (req, res) => {
@@ -93,7 +94,6 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
         { expiresIn: "7d" }
       );
 
-      const isProduction = process.env.NODE_ENV === "production";
       res.cookie("token", jwtToken, {
         httpOnly: true,
         secure: isProduction,
@@ -116,11 +116,20 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
     }
 
     if (mode === "reset") {
-      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET_RESET_PASSWORD, { expiresIn: '15m' });
+      if (!user.email_verified) return res.status(401).json({error: "Please verify your email before password reset"})
+
+      const resetJwtToken = jwt.sign({ email: email, }, process.env.JWT_SECRET_RESET_PASSWORD, { expiresIn: '15m' });
       user.verifyCode = null;
       user.verifyCodeExpires = null;
       await user.save();
-      return res.json({ resetToken });
+
+      res.cookie("resetToken", resetJwtToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      return res.status(200).json({message: "Password can be reset", email: user.email});
     }
 
     return res.status(400).json({ error: "Unknown mode" });
@@ -132,25 +141,37 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
 
 // Reset password endpoint
 router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
-  const { email, newPassword, resetToken } = req.body;
-
-  // FIX: validate inputs before verifying token so we fail fast on bad payloads
+  const { email, newPassword} = req.body;
+  const rawCookies = req.headers.cookie;
+  const parsedCookies = rawCookies.split(';').reduce((acc, cookie) => {
+    const [name, value] = cookie.trim().split('=');
+    acc[name] = value;
+    return acc;
+  }, {});
+  const resivedResetToken = parsedCookies.resetToken
+  if (!resivedResetToken){
+    return res.status(400).json({ error: "Invalid or expired reset token" });
+  }
   if (!email || !newPassword || newPassword.length < 6) {
     return res.status(400).json({ error: "Invalid payload input rules" });
   }
 
   try {
-    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET_PASSWORD);
+    const decoded = jwt.verify(resivedResetToken, process.env.JWT_SECRET_RESET_PASSWORD);
     if (!decoded || decoded.email !== email) {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ error: "User not found" });
-
+    if (!user) return res.status(200).json({ error: "if that email exists, you'll receive a code" });
+  
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
-
+    res.clearCookie("resetToken", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax'
+    });
     return res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     console.error("Error resetting password:", error);

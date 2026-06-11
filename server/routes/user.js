@@ -236,9 +236,6 @@ router.put("/updateProfile", doubleCsrfProtection, auth, async (req, res) => {
   try {
     const { username, country} = req.body;
     const user = await User.findOne({ email: req.user.email });
-    if (!validUser){
-      return res.status(401).json({error: "Invalid User Data"})
-    }
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
