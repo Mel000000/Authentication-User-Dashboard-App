@@ -32,6 +32,7 @@
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.1",
+    "mailosaur": "^11.1.1",
     "nodemon": "^3.1.14"
   },
   "scripts": {}

@@ -1,7 +1,20 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import path from "path";
+import MailosaurClient from 'mailosaur'
+import dotenv from 'dotenv';
+dotenv.config();
 
-test('create new account', async ({ page }) => {
+const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+
+const mailosaur = new MailosaurClient(process.env.MAILOSAUR_API_KEY)
+const serverId = "xyde35zm"
+
+
+const emailAddress = `test-user-${Date.now()}@${serverId}.mailosaur.net`
+
+// creates new user and saves session/ cookies in user.json file for further testing
+test('fill out form and verify email', async ({ page }) => {
   await page.goto('https://authentication-user-dashboard-app.onrender.com/signup');
   await page.getByRole('textbox', { name: 'Password', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
@@ -10,7 +23,7 @@ test('create new account', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Username' }).click();
   await page.getByRole('textbox', { name: 'Username' }).fill('testusername');
   await page.getByRole('textbox', { name: 'Email Address' }).click();
-  await page.getByRole('textbox', { name: 'Email Address' }).fill('test@gmail.com');
+  await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
   await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
   await page.getByRole('button', { name: '-- Select country --' }).click();
   await page.getByRole('button', { name: 'Albania flag Albania' }).click();
@@ -21,6 +34,22 @@ test('create new account', async ({ page }) => {
   } else if (await page.getByText('Email already in use').isVisible()) {
     console.error('Account creation failed since the email is already in use!');
   }
+  await page.waitForURL("https://authentication-user-dashboard-app.onrender.com/verify-email")
+  await page.waitForTimeout(1000);
+  await page.getByText('Send Code').click();
+  const email = await mailosaur.messages.get(serverId, {
+    sentTo: emailAddress
+  }, {timeout: 10000});
+  const codeMatch = email.html.body.match(/\b\d{6}\b/)[0];
+  const code = codeMatch ? codeMatch[0] : null;
+  expect(code).toBeTruthy();
+  await page.getByRole('textbox', { name: 'Verification Code' }).click();
+  await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
+  await page.getByRole('button', { name: 'Complete Registration' }).click();
+  await page.waitForTimeout(2000);
+  await page.context().storageState({ path: authFile });
 });
+
+
 
 
