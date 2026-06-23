@@ -61,7 +61,8 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://authentication-user-dashboard-app.onrender.com'
+      'https://authentication-user-dashboard-app.onrender.com',
+      'https://audaf-testing.onrender.com'
     ];
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
