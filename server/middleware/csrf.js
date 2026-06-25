@@ -8,7 +8,7 @@ const csrfInstance = doubleCsrf({
   cookieName: isProduction || isTest ? "csrf-token-prod" : "csrf-token-dev",
   cookieOptions: {
     httpOnly: true,
-    secure: isProduction && !isTest,
+    secure: isProduction && isTest,
     sameSite: isProduction || isTest ? "none" : "lax",
     path: "/",
   },
