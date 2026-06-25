@@ -1,6 +1,6 @@
 const { doubleCsrf } = require("csrf-csrf");
-const isProduction = process.env.NODE_ENV === 'production' || "testingProduction";
-const isTest = process.env.NODE_ENV === "testingProduction"
+const isProduction = process.env.NODE_ENV === 'production';
+const isTest = process.env.NODE_ENV === 'testingProduction';
 
 const csrfInstance = doubleCsrf({
   getSecret: (req) => process.env.CSRF_SECRET,
@@ -9,7 +9,7 @@ const csrfInstance = doubleCsrf({
   cookieOptions: {
     httpOnly: true,
     secure: isProduction && !isTest,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: isProduction || isTest ? "none" : "lax",
     path: "/",
   },
   size: 64,

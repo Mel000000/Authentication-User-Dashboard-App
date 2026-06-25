@@ -16,6 +16,7 @@ const redisStore = new RedisStore({ client: redisClient });
 require("dotenv").config(); // load .env
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isTest = process.env.NODE_ENV === 'testingProduction';
 
 const uri = process.env.MONGODB_URI;
 const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
@@ -45,8 +46,8 @@ app.use(session({
   name:"dashboard.sid",
   cookie: {
     httpOnly: true,             // prevent client-side JS access
-    secure: isProduction,                // must be true on HTTPS
-    sameSite: isProduction ? 'none' : 'lax',            // required for cross-site requests
+    secure: isProduction || isTest,                // must be true on HTTPS
+    sameSite: isProduction || isTest ? 'none' : 'lax',            // required for cross-site requests
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   }
@@ -88,7 +89,6 @@ if (process.env.NODE_ENV === 'production') {
   app.use('/api/codeRequest', emailLimiter);
   app.use('/api/user/loginUser', authLimiter);
   app.use('/api/user/createUser', authLimiter);
-
 }
 
 
