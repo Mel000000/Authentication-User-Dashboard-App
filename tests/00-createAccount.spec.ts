@@ -11,7 +11,7 @@ const mailosaur = new MailosaurClient(process.env.MAILOSAUR_API_KEY)
 const serverId = "xyde35zm"
 
 
-const emailAddress = `test-user@${serverId}.mailosaur.net`
+const emailAddress = `test-user@${Date.now()}${serverId}.mailosaur.net`
 
 // creates new user and saves session/ cookies in user.json file for further testing
 test('fill out form and verify email', async ({ page }) => {
@@ -32,7 +32,7 @@ test('fill out form and verify email', async ({ page }) => {
   if  (await page.getByText('User created successfully!').isVisible()) {
     console.log('Account creation successful!');
   } else if (await page.getByText('Email already in use').isVisible()) {
-    console.error('Account creation failed since the email is already in use!');
+    console.error('Account creation failed since the email is already in use!')
   }
   await page.waitForURL("https://audaf-testing.onrender.com/verify-email")
   await page.waitForTimeout(1000);
@@ -41,15 +41,9 @@ test('fill out form and verify email', async ({ page }) => {
     sentTo: emailAddress
   }, {timeout: 10000});
   const codeMatch = email.html.body.match(/\b\d{6}\b/)[0];
-  const code = codeMatch ? codeMatch[0] : null;
-  expect(code).toBeTruthy();
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
   await page.getByRole('button', { name: 'Complete Registration' }).click();
   await page.waitForTimeout(2000);
   await page.context().storageState({ path: authFile });
 });
-
-
-
-
