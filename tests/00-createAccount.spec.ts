@@ -40,6 +40,7 @@ test('fill out form and verify email', async ({ page }) => {
   const email = await mailosaur.messages.get(serverId, {
     sentTo: emailAddress
   }, {timeout: 10000});
+  console.log("email",email)
   const codeMatch = email.html.body.match(/\b\d{6}\b/)[0];
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
