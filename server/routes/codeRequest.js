@@ -8,7 +8,8 @@ const router = express.Router();
 const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
 
 const isProduction = process.env.NODE_ENV === 'production';
-const isTest = process.env.NODE_ENV === 'testingProduction';
+const isTest = process.env.NODE_ENV === "test";
+const isDeployed = isProduction || isTest;
 
 // Endpoint to request a verification code
 router.post("/", doubleCsrfProtection, async (req, res) => {
@@ -97,8 +98,8 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
 
       res.cookie("token", jwtToken, {
         httpOnly: true,
-        secure: isProduction || isTest,
-        sameSite: isProduction || isTest ? "none" : "lax",
+        secure: isDeployed,
+        sameSite: isDeployed ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
@@ -126,8 +127,8 @@ router.post("/verifyCode", doubleCsrfProtection, async (req, res) => {
 
       res.cookie("resetToken", resetJwtToken, {
         httpOnly: true,
-        secure: isProduction || isTest,
-        sameSite: isProduction || isTest ? "none" : "lax",
+        secure: isDeployed,
+        sameSite: isDeployed ? "none" : "lax",
         maxAge: 15 * 60 * 1000,
       })
       return res.status(200).json({message: "Password can be reset", email: user.email});

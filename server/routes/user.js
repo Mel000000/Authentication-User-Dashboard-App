@@ -9,7 +9,8 @@ const { deleteImageFromCloudinary } = require("../config/cloudinary");
 const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
 
 const isProduction = process.env.NODE_ENV === 'production';
-const isTest = process.env.NODE_ENV === 'testingProduction';
+const isTest = process.env.NODE_ENV === "test";
+const isDeployed = isProduction || isTest;
 
 const router = express.Router();
 
@@ -89,8 +90,8 @@ router.get("/me", auth, async (req, res) => {
 router.post("/logout",doubleCsrfProtection,(req, res) => {                     
     res.clearCookie("token", {
       httpOnly: true,
-      secure: isProduction || isTest,
-      sameSite: isProduction || isTest? 'none' : 'lax'
+      secure: isDeployed,
+      sameSite: isDeployed ? 'none' : 'lax'
     });
     req.session.destroy();
     res.json({ message: "Logged out successfully" });
@@ -124,8 +125,8 @@ router.post("/storeRegistrationData", doubleCsrfProtection , async (req, res) =>
     if (needCookie) {
       res.cookie("tempEmail", token, {
         httpOnly: true,
-        secure: isProduction || isTest,
-        sameSite: isProduction || isTest ? "none" : "lax",
+        secure: isDeployed,
+        sameSite: isDeployed ? "none" : "lax",
         maxAge: 15 * 60 * 1000 // 15 minutes
       });
     }
@@ -174,8 +175,8 @@ router.post("/loginUser", doubleCsrfProtection, async (req, res) => {
 
     res.cookie("token", jwtToken, {
       httpOnly: true,
-      secure: isProduction || isTest,
-      sameSite: isProduction || isTest ? "none" : "lax",
+      secure: isDeployed,
+      sameSite: isDeployed ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
