@@ -63,7 +63,8 @@ const corsOptions = {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://authentication-user-dashboard-app.onrender.com',
-      'https://audaf-testing.onrender.com'
+      'https://audaf-testing.onrender.com',
+      'https://audab-testing.onrender.com'
     ];
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
