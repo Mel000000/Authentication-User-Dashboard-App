@@ -19,10 +19,10 @@ async function connectDB() {
 
 connectDB();
 
-const fetchUsersWithUnverifiedEmailsAndDelete = async () =>{
+const fetchEmailsToDelete = async () =>{
   const users = await User.find()
   for (const user of users) {
-    if (!user.email_verified) {
+    if (!user.email_verified || user.email.includes("@xyde35zm.mailosaur.net")) {
       try {
         if (user.profileImagePublicId) {
           try {
@@ -39,9 +39,9 @@ const fetchUsersWithUnverifiedEmailsAndDelete = async () =>{
         console.error(`Error deleting user ${user.email}:`, err);
       }
     }
-  }console.log("Finished checking for unverified emails and deleting users.");
+  }console.log("Finished checking for users to delete.");
   mongoose.connection.close(); // Close the connection after the operation is complete
 };
 
 
-fetchUsersWithUnverifiedEmailsAndDelete ();
+fetchEmailsToDelete();
