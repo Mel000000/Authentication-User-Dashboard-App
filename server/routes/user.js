@@ -10,7 +10,7 @@ const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === "test";
-const isDeployed = isProduction; // excludes test: Playwright runs over HTTP, Secure cookies require HTTPS
+const isDeployed = isProduction || isTest; // both need Secure+SameSite=None (cross-origin HTTPS on Render)
 
 const router = express.Router();
 
