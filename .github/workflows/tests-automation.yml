@@ -46,6 +46,7 @@ jobs:
         run: npx playwright test
         env:
           CI: true
+          MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
       
       - name: Format test results
         run: |
