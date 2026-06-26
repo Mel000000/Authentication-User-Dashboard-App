@@ -61,3 +61,11 @@ test("logging out and in", async({page})=>{
   await page.waitForURL("https://audaf-testing.onrender.com/home")
   await page.context().storageState({ path: authFile });
 })
+
+test("deleting test account", async({page})=>{
+  await page.goto('https://audaf-testing.onrender.com/home');
+  await page.getByRole('button', { name: 'Delete Account' }).click();
+  await page.getByRole('textbox', { name: 'Enter your email' }).click();
+  await page.getByRole('textbox', { name: 'Enter your email' }).fill('test-user@xyde35zm.mailosaur.net');
+  await page.getByRole('button', { name: 'Yes, Delete My Account' }).click();
+})
