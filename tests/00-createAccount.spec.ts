@@ -32,7 +32,7 @@ test('fill out form and verify email', async ({ page }) => {
   if  (await page.getByText('User created successfully!').isVisible()) {
     console.log('Account creation successful!');
   } else if (await page.getByText('Email already in use').isVisible()) {
-    console.error('Account creation failed since the email is already in use!');
+    console.error('Account creation failed since the email is already in use!')
   }
   await page.waitForURL("https://audaf-testing.onrender.com/verify-email")
   await page.waitForTimeout(1000);
@@ -40,16 +40,11 @@ test('fill out form and verify email', async ({ page }) => {
   const email = await mailosaur.messages.get(serverId, {
     sentTo: emailAddress
   }, {timeout: 10000});
+  console.log("email",email)
   const codeMatch = email.html.body.match(/\b\d{6}\b/)[0];
-  const code = codeMatch ? codeMatch[0] : null;
-  expect(code).toBeTruthy();
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
   await page.getByRole('button', { name: 'Complete Registration' }).click();
   await page.waitForTimeout(2000);
   await page.context().storageState({ path: authFile });
 });
-
-
-
-

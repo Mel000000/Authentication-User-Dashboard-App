@@ -16,6 +16,9 @@ const redisStore = new RedisStore({ client: redisClient });
 require("dotenv").config(); // load .env
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isTest = process.env.NODE_ENV === "test";
+
+const isDeployed = isProduction || isTest;
 
 const uri = process.env.MONGODB_URI;
 const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
@@ -45,8 +48,8 @@ app.use(session({
   name:"dashboard.sid",
   cookie: {
     httpOnly: true,             // prevent client-side JS access
-    secure: isProduction,                // must be true on HTTPS
-    sameSite: isProduction ? 'none' : 'lax',            // required for cross-site requests
+    secure: isDeployed,                // must be true on HTTPS
+    sameSite: isDeployed ? 'none' : 'lax',            // required for cross-site requests
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   }
@@ -62,7 +65,8 @@ const corsOptions = {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://authentication-user-dashboard-app.onrender.com',
-      'https://audaf-testing.onrender.com'
+      'https://audaf-testing.onrender.com',
+      'https://audab-testing.onrender.com'
     ];
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
@@ -77,20 +81,16 @@ const corsOptions = {
 // Apply CORS middleware globally
 app.use(cors(corsOptions));
 
-
 app.use(express.json()); // parse JSON request bodies
 app.use(express.urlencoded({extended:true})); // parse URL-encoded request bodies
 
-
 // Apply rate limiters only in production to avoid hindering development and testing
-if (process.env.NODE_ENV === 'production') {
+if (isProduction) {
   app.use('/api/codeRequest/verifyCode', authLimiter);
   app.use('/api/codeRequest', emailLimiter);
   app.use('/api/user/loginUser', authLimiter);
   app.use('/api/user/createUser', authLimiter);
-
 }
-
 
 // Routes that are server API endpoints
 app.use("/api/codeRequest", codeRequestRouter);
