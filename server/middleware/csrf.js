@@ -1,7 +1,8 @@
 const { doubleCsrf } = require("csrf-csrf");
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === "test";
-const isDeployed = isProduction || isTest;
+
+const isDeployed = isProduction;
 
 const csrfInstance = doubleCsrf({
   getSecret: (req) => process.env.CSRF_SECRET,

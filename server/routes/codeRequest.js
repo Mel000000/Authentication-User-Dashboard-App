@@ -9,7 +9,7 @@ const { doubleCsrfProtection, generateToken } = require("../middleware/csrf");
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === "test";
-const isDeployed = isProduction || isTest;
+const isDeployed = isProduction; // excludes test: Playwright runs over HTTP, Secure cookies require HTTPS
 
 // Endpoint to request a verification code
 router.post("/", doubleCsrfProtection, async (req, res) => {
@@ -165,8 +165,8 @@ router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
     await user.save();
     res.clearCookie("resetToken", {
       httpOnly: true,
-      secure: isProduction || isTest,
-      sameSite: isProduction || isTest? 'none' : 'lax'
+      secure: isDeployed,
+      sameSite: isDeployed ? 'none' : 'lax'
     });
     return res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {

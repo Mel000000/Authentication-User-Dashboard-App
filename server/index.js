@@ -17,7 +17,8 @@ require("dotenv").config(); // load .env
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === "test";
-const isDeployed = isProduction || isTest;
+
+const isDeployed = isProduction;
 
 const uri = process.env.MONGODB_URI;
 const viteApiBaseUrl = process.env.VITE_API_BASE_URL;
