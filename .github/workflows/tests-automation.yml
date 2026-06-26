@@ -51,6 +51,19 @@ jobs:
           fi
         env:
           MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
+          
+      - name: Warm up Render server
+        run: |
+          echo "Waiting for server to wake up..."
+          for i in {1..12}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://audaf-testing.onrender.com)
+            if [ "$STATUS" = "200" ]; then
+              echo "Server is up!"
+              break
+            fi
+            echo "Attempt $i: got $STATUS, retrying in 10s..."
+            sleep 10
+          done
 
       - name: Run tests
         run: npx playwright test
