@@ -28,25 +28,36 @@ test("editing profile", async({page})=>{
 })
 
 test("logging out and in", async({page})=>{
-  /*await page.goto('https://audaf-testing.onrender.com/home');
+  await page.goto('https://audaf-testing.onrender.com/home');
   await page.getByRole('button', { name: 'Logout' }).click();
   await expect(page.getByText("Logged out successfully! Redirecting to login page...", { exact: true})).toBeVisible();
   await page.context().storageState({ path: authFile });
   await page.goto("https://audaf-testing.onrender.com/home")
-  await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();*/
+  await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();
   await page.goto("https://audaf-testing.onrender.com")
   await page.getByPlaceholder("Enter email").click();
   await page.getByPlaceholder("Enter email").fill(emailAddress);
   await page.getByPlaceholder("Password").click();
   await page.getByPlaceholder("Password").fill('securepassword123');
 
-  // Handle reCAPTCHA (test sitekey)
-  await page.locator('iframe[name="a-utsjmx9r34l1"]').contentFrame().getByRole('checkbox', { name: "I'm not a robot" }).click();
+  // Handle reCAPTCHA 
+  await page.waitForFunction(() => {
+    return document.querySelector('iframe[src*="recaptcha"]');
+  });
 
+  const frames = page.frames();
+  const recaptchaFrame = frames.find(f =>
+    f.url().includes('recaptcha')
+  );
+  if (recaptchaFrame) {
+    await recaptchaFrame.getByRole('checkbox', { name: "I'm not a robot" }).click();
+  }
 
   await page.getByRole('button', { name: 'Sign In' }).click();
 
   await expect(
-    page.getByText('Logged in successfully! Redirecting to login page...')
+    page.getByText('Login successful! Redirecting to your dashboard...')
   ).toBeVisible({ timeout: 10000 });
+  await page.waitForURL("https://audaf-testing.onrender.com/home")
+  await page.context().storageState({ path: authFile });
 })

@@ -11,11 +11,11 @@ const mailosaur = new MailosaurClient(process.env.MAILOSAUR_API_KEY)
 const serverId = "xyde35zm"
 
 
-const emailAddress = `test-user@${Date.now()}${serverId}.mailosaur.net`
+const emailAddress = `test-user@${serverId}.mailosaur.net`
 
 // creates new user and saves session/ cookies in user.json file for further testing
 test('fill out form and verify email', async ({ page }) => {
-  await page.goto('https://authentication-user-dashboard-app.onrender.com/signup');
+  await page.goto('https://audaf-testing.onrender.com/signup');
   await page.getByRole('textbox', { name: 'Password', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
   await page.getByRole('textbox', { name: 'Confirm Password' }).click();
@@ -34,7 +34,7 @@ test('fill out form and verify email', async ({ page }) => {
   } else if (await page.getByText('Email already in use').isVisible()) {
     console.error('Account creation failed since the email is already in use!')
   }
-  await page.waitForURL("https://authentication-user-dashboard-app.onrender.com/verify-email")
+  await page.waitForURL("https://audaf-testing.onrender.com/verify-email")
   await page.waitForTimeout(1000);
   await page.getByText('Send Code').click();
   const email = await mailosaur.messages.get(serverId, {
