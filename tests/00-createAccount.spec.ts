@@ -29,22 +29,20 @@ test('fill out form and verify email', async ({ page }) => {
   await page.getByRole('button', { name: 'Albania flag Albania' }).click();
   await page.getByRole('button', { name: 'Create Account' }).click();
   await page.waitForTimeout(1000);
-  if  (await page.getByText('User created successfully!').isVisible()) {
-    console.log('Account creation successful!');
-  } else if (await page.getByText('Email already in use').isVisible()) {
-    console.error('Account creation failed since the email is already in use!')
-  }
   await page.waitForURL("https://audaf-testing.onrender.com/verify-email")
   await page.waitForTimeout(1000);
   await page.getByText('Send Code').click();
+  await page.waitForTimeout(5000);
   const email = await mailosaur.messages.get(serverId, {
     sentTo: emailAddress
   }, {timeout: 10000});
-  console.log("email",email)
   const codeMatch = email.html.body.match(/\b\d{6}\b/)[0];
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
   await page.getByRole('button', { name: 'Complete Registration' }).click();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
+  await expect(page.getByText('Email verified!')).toBeVisible()
+  await page.goto('https://audaf-testing.onrender.com/home');
+  await expect(page.getByText('Welcome Home, testusername!')).toBeVisible();
   await page.context().storageState({ path: authFile });
 });

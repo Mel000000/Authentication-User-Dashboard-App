@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import path from "path";
 
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
-
+console.log('authFile path:', authFile);
 test.use({ storageState: authFile }); // ← load state for all tests in this file
 
 const serverId = "xyde35zm"
