@@ -41,6 +41,16 @@ jobs:
       # actual browser binaries if they were found in our cache storage step.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+      
+      - name: Debug secret presence
+        run: |
+          if [ -z "$MAILOSAUR_API_KEY" ]; then
+            echo "❌ Secret is empty or not set"
+          else
+            echo "✅ Secret is present (length: ${#MAILOSAUR_API_KEY})"
+          fi
+        env:
+          MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
 
       - name: Run tests
         run: npx playwright test
