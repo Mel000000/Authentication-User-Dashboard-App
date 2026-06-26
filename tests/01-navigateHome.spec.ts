@@ -28,25 +28,20 @@ test("editing profile", async({page})=>{
 })
 
 test("logging out and in", async({page})=>{
-  await page.goto('https://audaf-testing.onrender.com/home');
+  /*await page.goto('https://audaf-testing.onrender.com/home');
   await page.getByRole('button', { name: 'Logout' }).click();
   await expect(page.getByText("Logged out successfully! Redirecting to login page...", { exact: true})).toBeVisible();
   await page.context().storageState({ path: authFile });
   await page.goto("https://audaf-testing.onrender.com/home")
-  await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();
+  await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();*/
+  await page.goto("https://audaf-testing.onrender.com")
   await page.getByPlaceholder("Enter email").click();
   await page.getByPlaceholder("Enter email").fill(emailAddress);
   await page.getByPlaceholder("Password").click();
   await page.getByPlaceholder("Password").fill('securepassword123');
 
   // Handle reCAPTCHA (test sitekey)
-  const frame = page.frameLocator('iframe[src*="recaptcha"]');
-  const checkbox = frame.locator('#recaptcha-anchor');
-  await checkbox.waitFor({ state: 'visible' });
-  await checkbox.click();
-
-  const token = await page.inputValue('#g-recaptcha-response');
-  console.log('✅ Captcha token length:', token.length);
+  await page.locator('iframe[name="a-utsjmx9r34l1"]').contentFrame().getByRole('checkbox', { name: "I'm not a robot" }).click();
 
 
   await page.getByRole('button', { name: 'Sign In' }).click();

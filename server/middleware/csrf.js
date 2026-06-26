@@ -1,15 +1,14 @@
 const { doubleCsrf } = require("csrf-csrf");
 const isProduction = process.env.NODE_ENV === 'production';
-const isTest = process.env.NODE_ENV === 'testingProduction';
 
 const csrfInstance = doubleCsrf({
   getSecret: (req) => process.env.CSRF_SECRET,
   getSessionIdentifier: (req) => req.sessionID,
-  cookieName: isProduction || isTest ? "csrf-token-prod" : "csrf-token-dev",
+  cookieName: isProduction ? "csrf-token-prod" : "csrf-token-dev",
   cookieOptions: {
     httpOnly: true,
-    secure: isProduction && isTest,
-    sameSite: isProduction || isTest ? "none" : "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
   },
   size: 64,
