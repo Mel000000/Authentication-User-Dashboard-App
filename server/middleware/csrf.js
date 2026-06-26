@@ -2,28 +2,21 @@ const { doubleCsrf } = require("csrf-csrf");
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'testingProduction';
 
-if (isTest) {
-  module.exports = {
-    doubleCsrfProtection: (req, res, next) => next(),
-    generateToken: () => 'test-csrf-token',
-  };
-} else {
-  const csrfInstance = doubleCsrf({
-    getSecret: (req) => process.env.CSRF_SECRET,
-    getSessionIdentifier: (req) => req.sessionID,
-    cookieName: isProduction ? "csrf-token-prod" : "csrf-token-dev",
-    cookieOptions: {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      path: "/",
-    },
-    size: 64,
-    getTokenFromRequest: (req) => req.headers["x-csrf-token"],
-  });
- 
-  module.exports = {
-    doubleCsrfProtection: csrfInstance.doubleCsrfProtection ?? csrfInstance.csrf,
-    generateToken: csrfInstance.generateCsrfToken ?? csrfInstance.generateToken,
-  };
-}
+const csrfInstance = doubleCsrf({
+  getSecret: (req) => process.env.CSRF_SECRET,
+  getSessionIdentifier: (req) => req.sessionID,
+  cookieName: isProduction || isTest ? "csrf-token-prod" : "csrf-token-dev",
+  cookieOptions: {
+    httpOnly: true,
+    secure: isProduction && isTest,
+    sameSite: isProduction || isTest ? "none" : "lax",
+    path: "/",
+  },
+  size: 64,
+  getTokenFromRequest: (req) => req.headers["x-csrf-token"],
+});
+
+module.exports = {
+  doubleCsrfProtection: csrfInstance.doubleCsrfProtection ?? csrfInstance.csrf,
+  generateToken: csrfInstance.generateCsrfToken ?? csrfInstance.generateToken,
+};
