@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import path from "path";
 
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
-console.log('authFile path:', authFile);
+
 test.use({ storageState: authFile }); // ← load state for all tests in this file
 
 const serverId = "xyde35zm"
@@ -55,9 +55,7 @@ test("logging out and in", async({page})=>{
 
   await page.getByRole('button', { name: 'Sign In' }).click();
 
-  await expect(
-    page.getByText('Login successful! Redirecting to your dashboard...')
-  ).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText('Login successful! Redirecting to your dashboard...')).toBeVisible({ timeout: 10000 });
   await page.waitForURL("https://audaf-testing.onrender.com/home")
   await page.context().storageState({ path: authFile });
 })
@@ -68,4 +66,9 @@ test("deleting test account", async({page})=>{
   await page.getByRole('textbox', { name: 'Enter your email' }).click();
   await page.getByRole('textbox', { name: 'Enter your email' }).fill('test-user@xyde35zm.mailosaur.net');
   await page.getByRole('button', { name: 'Yes, Delete My Account' }).click();
+  await expect(page.getByText("Account deleted successfully! Redirecting to login page...")).toBeVisible({timeout: 10000});
+  await page.waitForURL("https://audaf-testing.onrender.com");
+  await page.context().storageState({ path: authFile });
+  await page.goto("https://audaf-testing.onrender.com/home");
+  await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();
 })

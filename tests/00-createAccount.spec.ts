@@ -10,7 +10,6 @@ const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 const mailosaur = new MailosaurClient(process.env.MAILOSAUR_API_KEY)
 const serverId = "xyde35zm"
 
-
 const emailAddress = `test-user@${serverId}.mailosaur.net`
 
 // creates new user and saves session/ cookies in user.json file for further testing
@@ -28,11 +27,11 @@ test('fill out form and verify email', async ({ page }) => {
   await page.getByRole('button', { name: '-- Select country --' }).click();
   await page.getByRole('button', { name: 'Albania flag Albania' }).click();
   await page.getByRole('button', { name: 'Create Account' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(10000);
   await page.waitForURL("https://audaf-testing.onrender.com/verify-email")
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(10000);
   await page.getByText('Send Code').click();
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(50000);
   const email = await mailosaur.messages.get(serverId, {
     sentTo: emailAddress
   }, {timeout: 10000});
@@ -40,7 +39,7 @@ test('fill out form and verify email', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
   await page.getByRole('button', { name: 'Complete Registration' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(10000);
   await expect(page.getByText('Email verified!')).toBeVisible()
   await page.goto('https://audaf-testing.onrender.com/home');
   await expect(page.getByText('Welcome Home, testusername!')).toBeVisible();
