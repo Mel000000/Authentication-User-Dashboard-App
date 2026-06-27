@@ -9,11 +9,10 @@ const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 
 const mailosaur = new MailosaurClient(process.env.MAILOSAUR_API_KEY)
 const serverId = "xyde35zm"
-
 const emailAddress = `test-user@${serverId}.mailosaur.net`
 
 // creates new user and saves session/ cookies in user.json file for further testing
-test('fill out form and verify email', async ({ page }) => {
+test('create account and verify email', async ({ page }) => {
   await page.goto('https://audaf-testing.onrender.com/signup');
   await page.getByRole('textbox', { name: 'Password', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
@@ -27,21 +26,24 @@ test('fill out form and verify email', async ({ page }) => {
   await page.getByRole('button', { name: '-- Select country --' }).click();
   await page.getByRole('button', { name: 'Albania flag Albania' }).click();
   await page.getByRole('button', { name: 'Create Account' }).click();
-  await page.waitForTimeout(10000);
-  await page.waitForURL("https://audaf-testing.onrender.com/verify-email")
-  await page.waitForTimeout(10000);
+
+  await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
+
   await page.getByText('Send Code').click();
-  await page.waitForTimeout(50000);
+
+  // Let Mailosaur poll until the email arrives rather than using a flat wait
   const email = await mailosaur.messages.get(serverId, {
     sentTo: emailAddress
-  }, {timeout: 10000});
+  }, { timeout: 60000 });
+
   const codeMatch = email.html.body.match(/\b\d{6}\b/)[0];
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
   await page.getByRole('button', { name: 'Complete Registration' }).click();
-  await page.waitForTimeout(10000);
-  await expect(page.getByText('Email verified!')).toBeVisible()
+
+  await expect(page.getByText('Email verified!')).toBeVisible({ timeout: 15000 });
   await page.goto('https://audaf-testing.onrender.com/home');
-  await expect(page.getByText('Welcome Home, testusername!')).toBeVisible();
+  await expect(page.getByText('Welcome Home, testusername!')).toBeVisible({ timeout: 15000 });
+
   await page.context().storageState({ path: authFile });
 });
