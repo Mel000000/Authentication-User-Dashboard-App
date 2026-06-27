@@ -1,5 +1,7 @@
 name: Tests Automation
 
+# Normally I would instead use a webhook as the trigger so the test runs on the latest deployment,
+# but I will instead use the Render API to fetch the current status of deployment to save costs.
 on:
   workflow_dispatch:
   push:
@@ -41,27 +43,19 @@ jobs:
       # actual browser binaries if they were found in our cache storage step.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-      
-      - name: Debug secret presence
-        run: |
-          if [ -z "$MAILOSAUR_API_KEY" ]; then
-            echo "❌ Secret is empty or not set"
-          else
-            echo "✅ Secret is present (length: ${#MAILOSAUR_API_KEY})"
-          fi
+
+      - name: Wait for Render Deploy
         env:
-          MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
-          
-      - name: Warm up Render server
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: "srv-d8s3o7b6sc1c73c0lo40"
         run: |
-          echo "Waiting for server to wake up..."
-          for i in {1..12}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://audaf-testing.onrender.com)
-            if [ "$STATUS" = "200" ]; then
-              echo "Server is up!"
-              break
-            fi
-            echo "Attempt $i: got $STATUS, retrying in 10s..."
+          while true; do
+            STATUS=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
+              "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+              | jq -r '.[0].status')
+            echo "Status: $STATUS"
+            if [ "$STATUS" = "live" ]; then echo "Live!" && break; fi
+            if [ "$STATUS" = "failed" ]; then exit 1; fi
             sleep 10
           done
 
