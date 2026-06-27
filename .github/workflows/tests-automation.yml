@@ -44,35 +44,6 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Wait for Render Deploy
-        env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          SERVICE_ID: "srv-d8s3o7b6sc1c73c0lo40"
-        run: |
-          sleep 15
-
-          DEPLOY_ID=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
-            "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
-            | jq -r '.[0].deploy.id')
-
-          echo "Polling deploy: $DEPLOY_ID"
-
-          MAX_ATTEMPTS=60
-          ATTEMPTS=0
-          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-            STATUS=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
-              "https://api.render.com/v1/services/$SERVICE_ID/deploys/$DEPLOY_ID" \
-              | jq -r '.deploy.status')
-            echo "Status: $STATUS"
-            if [ "$STATUS" = "live" ]; then echo "Live!" && break; fi
-            if [ "$STATUS" = "failed" ]; then echo "Deploy failed!" && exit 1; fi
-            ATTEMPTS=$((ATTEMPTS + 1))
-            sleep 10
-          done
-
-          if [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; then
-            echo "Timed out waiting for deploy" && exit 1
-          fi
 
       - name: Warm up Render instance
         run: |
