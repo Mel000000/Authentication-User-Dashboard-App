@@ -1,18 +1,24 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import path from "path";
-import MailosaurClient from 'mailosaur'
+import { MailpitClient } from 'mailpit-api';
 import dotenv from 'dotenv';
 dotenv.config();
 
+
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 
-const mailosaur = new MailosaurClient(process.env.MAILOSAUR_API_KEY)
-const serverId = "xyde35zm"
-const emailAddress = `test-user@${serverId}.mailosaur.net`
+const emailAddress = `test-user@gamil.com`
+
+const MAILPIT_URL = process.env.MAILPIT_URL || 'https://mailpit-testing.onrender.com';
 
 // creates new user and saves session/ cookies in user.json file for further testing
 test('create account and verify email', async ({ page }) => {
+  // Setting up Mailpit client
+  const mailpit = new MailpitClient(MAILPIT_URL);
+  await mailpit.deleteMessages();
+
+  // Filling up Signup Forum
   await page.goto('https://audaf-testing.onrender.com/signup');
   await page.getByRole('textbox', { name: 'Password', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
@@ -27,16 +33,30 @@ test('create account and verify email', async ({ page }) => {
   await page.getByRole('button', { name: 'Albania flag Albania' }).click();
   await page.getByRole('button', { name: 'Create Account' }).click();
 
+  // Wait for navigation to verification page
   await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
-
+  // trigger the email sender 
   await page.getByText('Send Code').click();
 
-  // Let Mailosaur poll until the email arrives rather than using a flat wait
-  const email = await mailosaur.messages.get(serverId, {
-    sentTo: emailAddress
-  }, { timeout: 60000 });
+  // Wait for the verification email to arrive (polls internally)
+  let message;
+  try {
+    message = await mailpit.waitForMessage({
+      query: `to:${emailAddress}`,
+      timeout: 60000,
+    });
+  } catch (err) {
+    throw new Error('Verification email not received within 60 seconds.');
+  }
 
-  const codeMatch = email.html.body.match(/\b\d{6}\b/)[0];
+  const html = message.HTML || message.Text || '';
+  const match = html.match(/\b\d{6}\b/);
+  if (!match) {
+    throw new Error('Could not find a 6-digit verification code in the email.');
+  }
+  const codeMatch = match[0];
+  
+  // Enter the code and complete registration
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
   await page.getByRole('button', { name: 'Complete Registration' }).click();
