@@ -10,7 +10,7 @@ module.exports.sendMail = async (email, code) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        From: { Email: process.env.BREVO_FROM_EMAIL, Name: process.env.BREVO_FROM_NAME },
+        From: { Email: "authApp@gmail.com", Name: "Auth App" },
         To: [{ Email: email }],
         Subject: 'Your Verification Code',
         HTML: `
@@ -28,7 +28,7 @@ module.exports.sendMail = async (email, code) => {
 
     return response.json();
   }
-  
+
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
@@ -55,6 +55,5 @@ module.exports.sendMail = async (email, code) => {
     throw new Error('Failed to send email via Brevo API');
   }
 
-  const data = await response.json();
-  return data;
+  return response.json();
 };
