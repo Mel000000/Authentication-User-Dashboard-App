@@ -1,9 +1,10 @@
 require("dotenv").config(); // load .env
 
 const isTest = process.env.NODE_ENV === "test";
+const isdevelopment = process.env.NODE_ENV === "development";
 
 module.exports.sendMail = async (email, code) => {
-  if (isTest) {
+  if (isTest || isdevelopment) {
     const response = await fetch(`${process.env.MAILPIT_URL}/api/v1/send`, {
       method: 'POST',
       headers: {
