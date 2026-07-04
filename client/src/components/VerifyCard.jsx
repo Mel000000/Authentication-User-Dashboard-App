@@ -91,7 +91,8 @@ function VerifyCard() {
         navigate('/reset-password', { state: { email, resetToken } });
       }, 1000);
     } catch (error) {
-      let errorMsg = "Invalid verification code. Please try again.";
+      let errorMsg = error.response?.data?.error || "Verification failed. Please try again.";
+      toast.error(errorMsg);
       if (error.response) {
         if (error.response.status === 429) {
           errorMsg = "Too many attempts. Please wait 15 minutes.";

@@ -7,6 +7,7 @@ dotenv.config();
 
 
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+const authFileUnverified = path.join(__dirname, '../playwright/.auth/userUnverified.json');
 
 const emailAddress = `test-user@gamil.com`
 
@@ -66,4 +67,24 @@ test('create account and verify email', async ({ page }) => {
   await expect(page.getByText('Welcome Home, testusername!')).toBeVisible({ timeout: 15000 });
 
   await page.context().storageState({ path: authFile });
+});
+
+test("create account and don't verify email", async({page})=>{
+  // Filling up Signup Forum
+  await page.goto('https://audaf-testing.onrender.com/signup');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
+  await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+  await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
+  await page.getByRole('textbox', { name: 'Username' }).click();
+  await page.getByRole('textbox', { name: 'Username' }).fill('testuserunverified');
+  await page.getByRole('textbox', { name: 'Email Address' }).click();
+  await page.getByRole('textbox', { name: 'Email Address' }).fill('testuserunverified@example.com');
+  await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
+  await page.getByRole('button', { name: '-- Select country --' }).click();
+  await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+  await page.getByRole('button', { name: 'Create Account' }).click();
+  await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
+
+  await page.context().storageState({ path: authFileUnverified });
 });
