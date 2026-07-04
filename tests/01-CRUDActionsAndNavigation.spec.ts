@@ -97,12 +97,11 @@ test("resetting password withh correct and incorrect verification code", async({
   await page.waitForURL("https://audaf-testing.onrender.com/reset-password", { timeout: 30000 });
   await page.getByRole('textbox', { name: 'New Password' }).click();
   // testing with password without numberfirst to see if the system handles it correctly
-  await page.getByRole('textbox', { name: 'New Password' }).fill('badpassword');
+  await page.getByRole('textbox', { name: 'New Password' }).fill('bad');
   await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-  await page.getByRole('textbox', { name: 'Confirm Password' }).fill('badpassword');
-  await page.getByRole('button', { name: 'Reset Password' }).click();
+  await page.getByRole('textbox', { name: 'Confirm Password' }).fill('bad');
   await expect(page.getByText("Password must be at least 6 characters long and contain at least one number")).toBeVisible({ timeout: 10000 });
-
+  
   await page.getByRole('textbox', { name: 'New Password' }).fill('newSecurePassword123');
   await page.getByRole('textbox', { name: 'Confirm Password' }).click();
   await page.getByRole('textbox', { name: 'Confirm Password' }).fill('newSecurePassword123');
