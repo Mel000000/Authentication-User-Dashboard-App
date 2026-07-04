@@ -15,7 +15,7 @@ function ResetPasswordCard() {
 
 
   const validForm = () => {
-    return password.length >= 6 && password === confirmPassword;
+    return password.length >= 6 && password === confirmPassword && /[0-9]/.test(password);
   };
 
   const handleSubmit = async (e) => {
@@ -93,7 +93,7 @@ function ResetPasswordCard() {
               style={{ borderRadius: '0.75rem', padding: '0.75rem' }}
             />
             <Form.Control.Feedback type="invalid">
-              Password must be at least 6 characters
+              Password must be at least 6 characters long and contain at least one number
             </Form.Control.Feedback>
           </Form.Group>
 

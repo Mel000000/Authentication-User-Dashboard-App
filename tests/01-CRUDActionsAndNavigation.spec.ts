@@ -55,7 +55,7 @@ test("logging in with wrong credentials", async({page})=>{
   await expect(page.getByText('Invalid credentials')).toBeVisible({ timeout: 10000 });
 });
 
-test("resetting password", async({page})=>{
+test("resetting password withh correct and incorrect verification code", async({page})=>{
   // Setting up Mailpit client
   const mailpit = new MailpitClient(MAILPIT_URL);
   await mailpit.deleteMessages();
@@ -63,6 +63,10 @@ test("resetting password", async({page})=>{
   await page.goto("https://audaf-testing.onrender.com")
   await page.getByRole('link', { name: 'Forgot Password?' }).click();
   await page.getByRole('textbox', { name: 'Email Address' }).click();
+  // testing with wrong email first to see if the system handles it correctly
+  await page.getByRole('textbox', { name: 'Email Address' }).fill("wrong@example.com");
+  await page.getByRole('button', { name: 'Send Code' }).click();
+  await expect(page.getByText("User not found")).toBeVisible({ timeout: 10000 });
   await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
   await page.getByRole('button', { name: 'Send Code' }).click();
   
@@ -84,10 +88,21 @@ test("resetting password", async({page})=>{
   const codeMatch = match[0];
 
   await page.getByRole('textbox', { name: 'Verification Code' }).click();
+  // testing with wrong verification code first to see if the system handles it correctly
+  await page.getByRole('textbox', { name: 'Verification Code' }).fill("000000"); // incorrect code
+  await page.locator('div').filter({ hasText: /^Verify$/ }).click();
+  await expect(page.getByText("Invalid code")).toBeVisible({ timeout: 10000 });
   await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
   await page.locator('div').filter({ hasText: /^Verify$/ }).click();
   await page.waitForURL("https://audaf-testing.onrender.com/reset-password", { timeout: 30000 });
   await page.getByRole('textbox', { name: 'New Password' }).click();
+  // testing with password without numberfirst to see if the system handles it correctly
+  await page.getByRole('textbox', { name: 'New Password' }).fill('badpassword');
+  await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+  await page.getByRole('textbox', { name: 'Confirm Password' }).fill('badpassword');
+  await page.getByRole('button', { name: 'Reset Password' }).click();
+  await expect(page.getByText("Password must be at least 6 characters long and contain at least one number")).toBeVisible({ timeout: 10000 });
+
   await page.getByRole('textbox', { name: 'New Password' }).fill('newSecurePassword123');
   await page.getByRole('textbox', { name: 'Confirm Password' }).click();
   await page.getByRole('textbox', { name: 'Confirm Password' }).fill('newSecurePassword123');

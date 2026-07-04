@@ -152,6 +152,10 @@ router.post("/resetPassword", doubleCsrfProtection, async (req, res) => {
     return res.status(400).json({ error: "Invalid payload input rules" });
   }
 
+  if(!/[0-9]/.test(newPassword)){
+    return res.status(400).json({ error: "Password must contain at least one number" });
+  }
+
   try {
     const decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET_PASSWORD);
     if (!decoded || decoded.email !== email) {

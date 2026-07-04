@@ -69,6 +69,24 @@ test('create account and verify email', async ({ page }) => {
   await page.context().storageState({ path: authFile });
 });
 
+test("trying to create account with already registered email", async({page})=>{
+  // run the create account and veerify email test again to try to create account with already registered email
+  await page.goto('https://audaf-testing.onrender.com/signup');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
+  await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+  await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
+  await page.getByRole('textbox', { name: 'Username' }).click();
+  await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
+  await page.getByRole('textbox', { name: 'Email Address' }).click();
+  await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
+  await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
+  await page.getByRole('button', { name: '-- Select country --' }).click();
+  await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+  await page.getByRole('button', { name: 'Create Account' }).click();
+  await expect(page.getByText('Email already in use')).toBeVisible({ timeout: 15000 });
+});
+
 test("create account and don't verify email", async({page})=>{
   // Filling up Signup Forum
   await page.goto('https://audaf-testing.onrender.com/signup');
