@@ -14,8 +14,6 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
-  globalSetup: './tests/00-global-setup.spec.ts',
-
   projects: [
     {
       name: 'setup',
