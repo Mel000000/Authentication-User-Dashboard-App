@@ -53,7 +53,7 @@ jobs:
       - name: Run tests
         env:
           CI: true
-          MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: npx playwright test
       
       - name: Format test results
