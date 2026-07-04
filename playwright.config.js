@@ -14,16 +14,18 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
+  globalSetup: './tests/00-global-setup.spec.ts',
+
   projects: [
     {
       name: 'setup',
-      testMatch: /.*1-signup\.spec\.ts/,
+      testMatch: /.*00-createAccount\.spec\.ts/,
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
       dependencies: ['setup'],
-      testIgnore: /.*1-signup\.spec\.ts/,
+      testIgnore: /.*00-createAccount\.spec\.ts/,
     },
   ],
 });

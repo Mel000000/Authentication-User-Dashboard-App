@@ -5,7 +5,6 @@ import { MailpitClient } from 'mailpit-api';
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 const authFileUnverified = path.join(__dirname, '../playwright/.auth/userUnverified.json');
 

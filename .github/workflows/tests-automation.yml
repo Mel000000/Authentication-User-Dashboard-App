@@ -39,23 +39,23 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      # Installs OS system dependencies every run, but skips downloading the 
-      # actual browser binaries if they were found in our cache storage step.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-
       - name: Warm up Render instance
         run: |
-          curl -s https://audaf-testing.onrender.com/health || true
+          # NOTE: there is no /health route on the server, so this always got a 404
+          # and only "worked" because of the || true swallowing the failure.
+          # Hitting the actual signup page still wakes a cold Render instance.
+          curl -s https://audaf-testing.onrender.com/signup || true
           sleep 5
 
       - name: Run tests
+        run: npx playwright test
         env:
           CI: true
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        run: npx playwright test
-      
+
       - name: Format test results
         run: |
           if [ -f results.json ]; then
@@ -72,7 +72,7 @@ jobs:
             echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
             echo "| ⏭️ Skipped | $SKIPPED |" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            
+
             # Generate a native Markdown Pie Chart using Mermaid
             echo "#### Visual Breakdown" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
@@ -91,7 +91,7 @@ jobs:
 
               # Deep-scans the JSON file, filters for unexpected results, and formats with the project name
               jq -r '.. | .specs? // empty | .[] | select(.tests[].results[].status != "expected") | .file as $file | .title as $title | .tests[] | select(.results[].status != "expected") | "* ❌ **" + $title + "** — 🌐 \`🏼" + .projectName + "\` *(in \`" + $file + "\`)*"' results.json >> $GITHUB_STEP_SUMMARY
-              
+
               echo "" >> $GITHUB_STEP_SUMMARY
               echo "❌ Failing tests detected. Halting pipeline automation."
               exit 1
