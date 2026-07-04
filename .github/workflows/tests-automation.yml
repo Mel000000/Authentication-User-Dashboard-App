@@ -51,10 +51,10 @@ jobs:
           sleep 5
 
       - name: Run tests
-        run: npx playwright test
         env:
           CI: true
           MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
+        run: npx playwright test
       
       - name: Format test results
         run: |
