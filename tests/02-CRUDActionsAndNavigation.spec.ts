@@ -2,14 +2,14 @@ import { test, expect } from '@playwright/test';
 import path from "path";
 import { existsSync, readFileSync } from 'fs';
 import { MailpitClient } from 'mailpit-api';
+import { time } from 'console';
+
+const emailAddressFile = path.join(__dirname, '../playwright/.auth/emails.json');
+const MAILPIT_URL = process.env.MAILPIT_URL || 'https://mailpit-testing.onrender.com';
 
 function getAuthFileByProjectName(projectName: string) {
   return path.join(__dirname, '../playwright/.auth', `user-${projectName.toLowerCase()}.json`);
 }
-
-const emailAddressFile = path.join(__dirname, '../playwright/.auth/emails.json');
-
-const MAILPIT_URL = process.env.MAILPIT_URL || 'https://mailpit-testing.onrender.com';
 
 function getEmailAddressForProject(testInfo: { project: { name: string } }) {
   if (!existsSync(emailAddressFile)) {
@@ -46,6 +46,28 @@ async function restoreAuthState(page: any, filePath: string) {
   }
 }
 
+async function letCookiesExpire(page: any) {
+  const context = page.context();
+  const cookies = await context.cookies();
+  const expiredCookies = cookies.map(cookie => ({
+    ...cookie,
+    expires: Math.floor(Date.now() / 1000) - 3600 // Set expiration to 1 hour in the past
+  }));
+  return context.addCookies(expiredCookies);
+}
+
+async function restoreExpiredCookies(page: any, filePath: string) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+  const state = JSON.parse(readFileSync(filePath, 'utf8'));
+  const context = page.context();
+  if (state.cookies?.length) {
+    return context.addCookies(state.cookies);
+  }
+
+}
+
 test.describe.serial('CRUD Actions and Navigation', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     const authFile = getAuthFileByProjectName(testInfo.project.name);
@@ -53,13 +75,11 @@ test.describe.serial('CRUD Actions and Navigation', () => {
   });
 
   test('navigating home', async ({ page }, testInfo) => {
-    const emailAddress = getEmailAddressForProject(testInfo);
     await page.goto('https://audaf-testing.onrender.com/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
   });
 
   test("editing profile", async({page}, testInfo)=>{
-    const emailAddress = getEmailAddressForProject(testInfo);
     await page.goto('https://audaf-testing.onrender.com/home');
     await page.getByRole('button', { name: 'Edit Profile' }).click();
     await page.getByRole('textbox').click();
@@ -73,8 +93,16 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await expect(page.getByText("Profile updated successfully!", { exact: true})).toBeVisible();
   })
 
+  test("let session expire by expiring cookies and trying to navigate home", async({page}, testInfo)=>{
+    await page.goto('https://audaf-testing.onrender.com/home');
+    await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).toBeVisible();
+    await letCookiesExpire(page);
+    await page.goto('https://audaf-testing.onrender.com/home');
+    await expect(page.getByText('Welcome Back!', { exact: true})).toBeVisible();
+    await restoreExpiredCookies(page, getAuthFileByProjectName(testInfo.project.name));
+  });
+
   test("logging out", async({page}, testInfo)=>{
-    const emailAddress = getEmailAddressForProject(testInfo);
     await page.goto('https://audaf-testing.onrender.com/home');
     await page.getByRole('button', { name: 'Logout' }).click();
     await expect(page.getByText("Logged out successfully! Redirecting to login page...", { exact: true})).toBeVisible();
@@ -108,7 +136,7 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     }
 
     await page.getByRole('button', { name: 'Sign In' }).click();
-    
+
     await page.waitForTimeout(3000);
     await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
   });

@@ -43,6 +43,7 @@ async function restoreAuthState(page: any, filePath: string) {
   }
 }
 
+
 test.describe.serial('Unverified Email CRUD Actions', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     const authFileUnverified = getAuthFileUnverifiedByProjectName(testInfo.project.name);
