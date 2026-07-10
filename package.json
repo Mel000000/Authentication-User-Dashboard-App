@@ -20,6 +20,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.2",
     "multer": "^2.1.1",
+    "nodemailer": "^9.0.3",
     "path": "^0.12.7",
     "rate-limit-redis": "^5.0.0",
     "react": "^18.2.0",
@@ -33,6 +34,7 @@
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.1",
     "mailosaur": "^11.1.1",
+    "mailpit-api": "^2.1.0",
     "nodemon": "^3.1.14"
   },
   "scripts": {}

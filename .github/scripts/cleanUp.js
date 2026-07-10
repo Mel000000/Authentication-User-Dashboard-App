@@ -3,24 +3,24 @@ const User = require("../../server/models/user");
 const { deleteImageFromCloudinary } = require("../../server/config/cloudinary.js");
 const path = require("path");
 const dotenv = require("dotenv");
-dotenv.config({ path: path.resolve(__dirname, '../../.env') }); // Load .env file
+dotenv.config({ path: path.resolve(__dirname, '../../.env') }); // Load .env file (local dev only; CI supplies MONGODB_URI directly)
 
 const uri = process.env.MONGODB_URI;
 
 async function connectDB() {
   try {
-    await mongoose.connect(uri, {dbName: "Authentication-User-Dashboard-App"  });
+    await mongoose.connect(uri, { dbName: "Authentication-User-Dashboard-App" });
     console.log("Successfully connected to MongoDB via Mongoose!");
   } catch (error) {
     console.error("MongoDB connection error:", error);
-    process.exit(1); // Stop the server if database connection fails
+    process.exit(1); // Stop the script if database connection fails
   }
 }
 
 connectDB();
 
-const fetchUsersWithUnverifiedEmailsAndDelete = async () =>{
-  const users = await User.find()
+const fetchEmailsToDelete = async () => {
+  const users = await User.find();
   for (const user of users) {
     if (!user.email_verified) {
       try {
@@ -34,14 +34,13 @@ const fetchUsersWithUnverifiedEmailsAndDelete = async () =>{
         }
         await User.deleteOne({ _id: user._id });
         console.log(`Deleted user with unverified email: ${user.email}`);
-
       } catch (err) {
         console.error(`Error deleting user ${user.email}:`, err);
       }
     }
-  }console.log("Finished checking for unverified emails and deleting users.");
+  }
+  console.log("Finished checking for users to delete.");
   mongoose.connection.close(); // Close the connection after the operation is complete
 };
 
-
-fetchUsersWithUnverifiedEmailsAndDelete ();
+fetchEmailsToDelete();
