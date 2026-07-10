@@ -113,5 +113,5 @@ jobs:
           github_token: ${{ secrets.GIT_TOKEN }}
           source_branch: testing
           target_branch: main
-          title: 'Automated Merge from testing to main'
+          title: ${{ github.event.head_commit.message }} # commit message from the last commit in the testing branch
           body: 'This PR was automatically created by the Tests Automation workflow after successful tests.'
