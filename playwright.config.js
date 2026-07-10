@@ -17,13 +17,13 @@ export default defineConfig({
   projects: [
     {
       name: 'setup',
-      testMatch: /.*00-createAccount\.spec\.ts/,
+      testMatch: /.*1-signup\.spec\.ts/,
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
       dependencies: ['setup'],
-      testIgnore: /.*00-createAccount\.spec\.ts/,
+      testIgnore: /.*1-signup\.spec\.ts/,
     },
   ],
 });
