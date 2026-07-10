@@ -16,14 +16,18 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'setup',
-      testMatch: /.*1-signup\.spec\.ts/,
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        env: { TEST_PROJECT_NAME: 'chromium' },
+      },
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setup'],
-      testIgnore: /.*1-signup\.spec\.ts/,
+      use: {
+        ...devices['Desktop Firefox'],
+        env: { TEST_PROJECT_NAME: 'firefox' },
+      },
     },
   ],
 });
