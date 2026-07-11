@@ -93,6 +93,15 @@ export const letCookiesExpire = async function(page: any) {
   return context.addCookies(expiredCookies);
 }
 
+export const removeCookiesFromFile =async function(page: any, filePath: string) {
+  if (!existsSync(filePath)) return;
+  const state = JSON.parse(readFileSync(filePath, 'utf8'));
+  state.cookies = []; // Remove cookies
+  await page.context().clearCookies(); // Clear cookies in the current context to make sure they are removed
+  await page.context().addCookies(state.cookies); // add the empty cookies array to the context to make sure no cookies are present
+  await page.context().storageState({ path: filePath }); // Save the modified state back to the file
+}
+
 export const restoreExpiredCookies = async function (page: any, filePath: string) {
   if (!existsSync(filePath)) {
     return;
