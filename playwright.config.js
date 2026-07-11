@@ -29,5 +29,6 @@ export default defineConfig({
         env: { TEST_PROJECT_NAME: 'firefox' },
       },
     },
+    // adding more browsers when tests are finished to speed up the creation of the test suite
   ],
 });
