@@ -1,72 +1,11 @@
 import { test, expect } from '@playwright/test';
-import path from "path";
-import { existsSync, readFileSync } from 'fs';
-import { MailpitClient } from 'mailpit-api';
-import { time } from 'console';
+import {getAuthFileByProjectName,
+        getEmailAddressForProject,
+        restoreAuthState,
+        letCookiesExpire,
+        restoreExpiredCookies,
+        MailpitCodeFetcher} from "../playwright/helper/functions.ts"
 
-const emailAddressFile = path.join(__dirname, '../playwright/.auth/emails.json');
-const MAILPIT_URL = process.env.MAILPIT_URL || 'https://mailpit-testing.onrender.com';
-
-function getAuthFileByProjectName(projectName: string) {
-  return path.join(__dirname, '../playwright/.auth', `user-${projectName.toLowerCase()}.json`);
-}
-
-function getEmailAddressForProject(testInfo: { project: { name: string } }) {
-  if (!existsSync(emailAddressFile)) {
-    return `test-user-${testInfo.project.name.toLowerCase()}@gamil.com`;
-  }
-
-  try {
-    const emailData = JSON.parse(readFileSync(emailAddressFile, 'utf8'));
-    return emailData[testInfo.project.name.toLowerCase()] || emailData.emailAddress || `test-user-${testInfo.project.name.toLowerCase()}@gamil.com`;
-  } catch {
-    return `test-user-${testInfo.project.name.toLowerCase()}@gamil.com`;
-  }
-}
-
-async function restoreAuthState(page: any, filePath: string) {
-  if (!existsSync(filePath)) {
-    return;
-  }
-
-  const state = JSON.parse(readFileSync(filePath, 'utf8'));
-  const context = page.context();
-
-  if (state.cookies?.length) {
-    await context.addCookies(state.cookies);
-  }
-
-  for (const originState of state.origins || []) {
-    await page.goto(originState.origin, { waitUntil: 'domcontentloaded' }).catch(() => {});
-    await page.evaluate((storage: any) => {
-      for (const item of storage.localStorage || []) {
-        window.localStorage.setItem(item.name, item.value);
-      }
-    }, originState);
-  }
-}
-
-async function letCookiesExpire(page: any) {
-  const context = page.context();
-  const cookies = await context.cookies();
-  const expiredCookies = cookies.map(cookie => ({
-    ...cookie,
-    expires: Math.floor(Date.now() / 1000) - 3600 // Set expiration to 1 hour in the past
-  }));
-  return context.addCookies(expiredCookies);
-}
-
-async function restoreExpiredCookies(page: any, filePath: string) {
-  if (!existsSync(filePath)) {
-    return;
-  }
-  const state = JSON.parse(readFileSync(filePath, 'utf8'));
-  const context = page.context();
-  if (state.cookies?.length) {
-    return context.addCookies(state.cookies);
-  }
-
-}
 
 test.describe.serial('CRUD Actions and Navigation', () => {
   test.beforeEach(async ({ page }, testInfo) => {
@@ -86,7 +25,7 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.getByRole('textbox').fill('newUsername');
     await page.getByRole('button', { name: 'Albania' }).click();
     await page.getByRole('button', { name: 'Austria flag Austria' }).click();
-    await page.getByRole('button', { name: 'Austria' }).click(); // gets removed for real testing when users are disposable in the testing circle
+    await page.getByRole('button', { name: 'Austria' }).click();
     await page.getByRole('button', { name: 'Albania flag Albania' }).click();
     await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
     await page.getByRole('button', { name: 'Submit Changes' }).click();
@@ -141,11 +80,8 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
   });
 
-  test("resetting password withh correct and incorrect verification code", async({page}, testInfo)=>{
+  test("resetting password with correct and incorrect verification code", async({page}, testInfo)=>{
     const emailAddress = getEmailAddressForProject(testInfo);
-    // Setting up Mailpit client
-    const mailpit = new MailpitClient(MAILPIT_URL);
-    await mailpit.deleteMessages();
     
     await page.goto("https://audaf-testing.onrender.com")
     await page.getByRole('link', { name: 'Forgot Password?' }).click();
@@ -157,34 +93,14 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
     await page.getByRole('button', { name: 'Send Code' }).click();
     
-    let message;
-    try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout waiting for verification email')), 60000)
-      );
-      message = await Promise.race([
-        mailpit.waitForMessage({
-          query: `to:${emailAddress}`,
-        }),
-        timeoutPromise,
-      ]);
-    } catch (err) {
-      throw new Error('Verification email not received within 60 seconds.');
-    }
-
-    const html = (message as any)?.HTML || (message as any)?.Text || '';
-    const match = html.match(/\b\d{6}\b/);
-    if (!match) {
-      throw new Error('Could not find a 6-digit verification code in the email.');
-    }
-    const codeMatch = match[0];
-
+    const code = await MailpitCodeFetcher(emailAddress)
+    console.log("CODE",code)
     await page.getByRole('textbox', { name: 'Verification Code' }).click();
     // testing with wrong verification code first to see if the system handles it correctly
     await page.getByRole('textbox', { name: 'Verification Code' }).fill("000000"); // incorrect code
     await page.locator('div').filter({ hasText: /^Verify$/ }).click();
     await expect(page.getByText("Invalid code")).toBeVisible({ timeout: 10000 });
-    await page.getByRole('textbox', { name: 'Verification Code' }).fill(codeMatch);
+    await page.getByRole('textbox', { name: 'Verification Code' }).fill(code);
     await page.locator('div').filter({ hasText: /^Verify$/ }).click();
     await page.waitForURL("https://audaf-testing.onrender.com/reset-password", { timeout: 30000 });
     await page.getByRole('textbox', { name: 'New Password' }).click();
