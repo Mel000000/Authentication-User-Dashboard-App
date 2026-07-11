@@ -29,10 +29,14 @@ test.describe('Authentication and Security Tests', () => {
     await setUserTamperedToSameAsUser(page, testInfo.project.name); // Reset the tampered state to match the regular user state for further tests
   });
 
-  test("test", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
-    await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
+  test("session with tampered JWT should be rejected", async({page}, testInfo)=>{
+    // logic for the test
+    await setUserTamperedToSameAsUser(page, testInfo.project.name);
   })
 
+  test("session with expired JWT should be rejected", async({page}, testInfo)=>{
+    // logic for the test
+    await setUserTamperedToSameAsUser(page, testInfo.project.name);
+  })
 
 });

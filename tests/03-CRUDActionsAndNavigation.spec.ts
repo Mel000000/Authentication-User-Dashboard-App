@@ -11,8 +11,6 @@ test.describe.serial('CRUD Actions and Navigation', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     const authFile = getAuthFileByProjectName(testInfo.project.name);
     await restoreAuthState(page, authFile);
-    const cookies = await page.context().cookies();
-    console.log('Cookies after restore:', cookies.map(c => `${c.name}=${c.value} (domain: ${c.domain})`));
   });
 
   test('navigating home', async ({ page }, testInfo) => {

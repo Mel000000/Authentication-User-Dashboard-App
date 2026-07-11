@@ -1,49 +1,18 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import path from "path";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
-import { MailpitCodeFetcher} from "../playwright/helper/functions.ts"
+import { MailpitCodeFetcher,
+        getAuthFileTamperedByProjectName,
+        readEmailData,
+        saveEmailAddressForProject,
+        getAuthFileByProjectName,
+        getAuthFileUnverified} from "../playwright/helper/functions.ts"
 
-const authStateDir = path.join(__dirname, '../playwright/.auth');
-const emailAddressFile = path.join(__dirname, '../playwright/.auth/emails.json');
 
-function getAuthFile(projectName: string) {
-  return path.join(authStateDir, `user-${projectName.toLowerCase()}.json`);
-}
-
-function getAuthFileTampered(projectName: string) {
-  return path.join(authStateDir, `userTampered-${projectName.toLowerCase()}.json`);
-}
-
-function getAuthFileUnverified(projectName: string) {
-  return path.join(authStateDir, `userUnverified-${projectName.toLowerCase()}.json`);
-}
-
-function readEmailData() {
-  if (!existsSync(emailAddressFile)) {
-    return {};
-  }
-  try {
-    return JSON.parse(readFileSync(emailAddressFile, 'utf8'));
-  } catch {
-    return {};
-  }
-}
-
-function saveEmailAddressForProject(projectName: string, emailAddress: string) {
-  const emailData = readEmailData();
-  emailData[projectName.toLowerCase()] = emailAddress;
-
-  mkdirSync(path.dirname(emailAddressFile), { recursive: true });
-  writeFileSync(emailAddressFile, JSON.stringify(emailData, null, 2));
-}
-function getAuthFileTamperedByProjectName(projectName: string) {
-  return path.join(__dirname, '../playwright/.auth', `userTampered-${projectName.toLowerCase()}.json`);
-}
 
 test.describe.serial('create accounts and testing account creation with already registered email', () => {
+
   // creates new user and saves session/ cookies in user.json file for further testing
   test('create account and verify email', async ({ page }, testInfo) => {
     const projectName = testInfo.project.name;
@@ -82,7 +51,7 @@ test.describe.serial('create accounts and testing account creation with already 
     await expect(page.getByText('Welcome Home, testusername!')).toBeVisible({ timeout: 15000 });
     
     // Save the authenticated state to a file for future tests
-    const authFile = getAuthFile(projectName);
+    const authFile = getAuthFileByProjectName(projectName);
     await page.context().storageState({ path: authFile });
     // Save the same state to another file for testing with a tampered token/ state
     await page.context().storageState({ path: getAuthFileTamperedByProjectName(testInfo.project.name) });
@@ -136,3 +105,20 @@ test.describe.serial('create accounts and testing account creation with already 
     await page.context().storageState({ path: authFileUnverified });
   });
 });
+
+// NEED TO CREATE FOLLOWING TESTS:
+/*
+mismatched password and confirm password
+invalid email format
+missing fields
+dublicate username
+weak password rejection
+size limit for pic uploads
+deleting account but enter the wrong email + verify deletion by trying to log in with deleted account
+invalid data when updating profile
+testing with expired verification code 10 min
+testing with exipred/missing reset token -> hitting /reset-password directlty without going through the forgot password flow
+testing 15 min tempEmail expiration for signup flow
+*/
+
+// NOTE: update cleanUp script to delete ALL stale testing accounts

@@ -1,5 +1,5 @@
 import path from "path";
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { MailpitClient } from 'mailpit-api';
 
 const authDir = path.resolve(__dirname, '..', '.auth');
@@ -15,6 +15,9 @@ export function getAuthFileTamperedByProjectName(projectName: string) {
   return path.join(authDir, `userTampered-${projectName.toLowerCase()}.json`);
 }
 
+export function getAuthFileUnverified(projectName: string) {
+  return path.join(authDir, `userUnverified-${projectName.toLowerCase()}.json`);
+}
 
 export const getEmailAddressForProject = function(testInfo: { project: { name: string } }) {
   if (!existsSync(emailAddressFile)) {
@@ -27,6 +30,25 @@ export const getEmailAddressForProject = function(testInfo: { project: { name: s
   } catch {
     return `test-user-${testInfo.project.name.toLowerCase()}@gamil.com`;
   }
+}
+
+export const readEmailData = function() {
+  if (!existsSync(emailAddressFile)) {
+    return {};
+  }
+  try {
+    return JSON.parse(readFileSync(emailAddressFile, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+export const saveEmailAddressForProject = function(projectName: string, emailAddress: string) {
+  const emailData = readEmailData();
+  emailData[projectName.toLowerCase()] = emailAddress;
+
+  mkdirSync(path.dirname(emailAddressFile), { recursive: true });
+  writeFileSync(emailAddressFile, JSON.stringify(emailData, null, 2));
 }
 
 export const restoreAuthState = async function(page: any, filePath: string) {
@@ -64,7 +86,7 @@ export const setUserTamperedToSameAsUser = async function(page: any, projectName
 export const letCookiesExpire = async function(page: any) {
   const context = page.context();
   const cookies = await context.cookies();
-  const expiredCookies = cookies.map(cookie => ({
+  const expiredCookies = cookies.map((cookie: any) => ({
     ...cookie,
     expires: Math.floor(Date.now() / 1000) - 3600 // Set expiration to 1 hour in the past
   }));
