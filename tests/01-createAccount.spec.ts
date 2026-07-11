@@ -100,12 +100,12 @@ test.describe.serial('create accounts and testing account creation with already 
     await page.context().storageState({ path: authFile });
   });
 
+  // run the create account and veerify email test again to try to create account with already registered email
   test("trying to create account with already registered email", async({page}, testInfo)=>{
     const projectName = testInfo.project.name;
     const emailData = readEmailData();
     const emailAddress = emailData[projectName.toLowerCase()] || `test-user-${projectName.toLowerCase()}@gamil.com`;
 
-    // run the create account and veerify email test again to try to create account with already registered email
     await page.goto('https://audaf-testing.onrender.com/signup');
     await page.getByRole('textbox', { name: 'Password', exact: true }).click();
     await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
@@ -122,6 +122,7 @@ test.describe.serial('create accounts and testing account creation with already 
     await expect(page.getByText('Email already in use')).toBeVisible({ timeout: 15000 });
   });
 
+  // creates new user without verifying email and saves session/ cookies in userUnverified.json file for further testing
   test("create account and don't verify email", async({page}, testInfo)=>{
     const projectName = testInfo.project.name;
     const unverifiedEmailAddress = `test-user-unverified-${projectName.toLowerCase()}-${Date.now()}@gamil.com`;
