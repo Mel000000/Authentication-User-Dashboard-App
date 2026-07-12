@@ -1,10 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import {getAuthFileByProjectName,
-        getEmailAddressForProject,
-        restoreAuthState,
-        letCookiesExpire,
-        restoreExpiredCookies,
-        MailpitCodeFetcher} from "../utils/functions.ts"
+import {getEmailAddressForProject} from "../utils/functions.ts"
 
 
 export async function loginUser(page: Page, testInfo: any, password: string,){

@@ -30,7 +30,7 @@ test.describe('Authentication and Security Tests', () => {
   test("session with tampered JWT-token should be rejected", async({page}, testInfo)=>{
     await page.goto('https://audaf-testing.onrender.com/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
-    await tamperWithJWTToken(getAuthFileTamperedByProjectName(testInfo.project.name))
+    await tamperWithJWTToken(testInfo.project.name)
     await page.goto('https://audaf-testing.onrender.com/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).not.toBeVisible();
     await setUserTamperedToSameAsUser(testInfo.project.name);
@@ -48,7 +48,7 @@ test.describe('Authentication and Security Tests', () => {
   test("session with invalid CSRF token should be rejected", async({page}, testInfo)=>{
     await page.goto('https://audaf-testing.onrender.com/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
-    await tamperWithCSRFToken(getAuthFileTamperedByProjectName(testInfo.project.name))
+    await tamperWithCSRFToken(testInfo.project.name)
     await page.goto('https://audaf-testing.onrender.com/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).not.toBeVisible();
     await setUserTamperedToSameAsUser(testInfo.project.name);

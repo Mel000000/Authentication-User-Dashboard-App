@@ -194,6 +194,10 @@ test.describe.serial('create accounts and testing account creation with already 
 testing with expired verification code 10 min
 testing with exipred/missing reset token -> hitting /reset-password directlty without going through the forgot password flow
 testing 15 min tempEmail expiration for signup flow
+
+clean up the dublications by moving them to the recycle file
+use the baseURL feature
+fix the ordering in file 02
 */
 
 // NOTE: update cleanUp script to delete ALL stale testing accounts
