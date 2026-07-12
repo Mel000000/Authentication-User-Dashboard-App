@@ -1,10 +1,10 @@
+// @ts-check
 import { test, expect } from '@playwright/test';
 import {getAuthFileByProjectName,
         getEmailAddressForProject,
         restoreAuthState,
-        letCookiesExpire,
-        restoreExpiredCookies,
-        MailpitCodeFetcher} from "../playwright/helper/functions.ts"
+        MailpitCodeFetcher} from "../playwright/utils/functions.ts"
+import {loginUser} from "../playwright/helpers/recycle.ts"
 
 
 test.describe.serial('CRUD Actions and Navigation', () => {
@@ -22,24 +22,20 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.goto('https://audaf-testing.onrender.com/home');
     await page.getByRole('button', { name: 'Edit Profile' }).click();
     await page.getByRole('textbox').click();
-    await page.getByRole('textbox').fill('newUsername');
+    // trying to update profile with invalid username first
+    await page.getByRole('textbox').fill('x'); // <- too short
     await page.getByRole('button', { name: 'Albania' }).click();
     await page.getByRole('button', { name: 'Austria flag Austria' }).click();
     await page.getByRole('button', { name: 'Austria' }).click();
     await page.getByRole('button', { name: 'Albania flag Albania' }).click();
     await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
     await page.getByRole('button', { name: 'Submit Changes' }).click();
+    await expect(page.getByText("Failed to update profile. Please try again.", { exact: true})).toBeVisible();
+    // now the valid username
+    await page.getByRole('textbox').fill('newUsername');
+    await page.getByRole('button', { name: 'Submit Changes' }).click();
     await expect(page.getByText("Profile updated successfully!", { exact: true})).toBeVisible();
   })
-
-  test("let session expire by expiring cookies and trying to navigate home", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
-    await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).toBeVisible();
-    await letCookiesExpire(page);
-    await page.goto('https://audaf-testing.onrender.com/home');
-    await expect(page.getByText('Welcome Back!', { exact: true})).toBeVisible();
-    await restoreExpiredCookies(page, getAuthFileByProjectName(testInfo.project.name));
-  });
 
   test("logging out", async({page}, testInfo)=>{
     await page.goto('https://audaf-testing.onrender.com/home');
@@ -51,30 +47,8 @@ test.describe.serial('CRUD Actions and Navigation', () => {
   })
 
   test("logging in with wrong credentials", async({page}, testInfo)=>{
-    const emailAddress = getEmailAddressForProject(testInfo);
-    await page.goto("https://audaf-testing.onrender.com")
-    await page.getByPlaceholder("Enter email").click();
-    await page.getByPlaceholder("Enter email").fill(emailAddress);
-    await page.getByPlaceholder("Password").click();
-    await page.getByPlaceholder("Password").fill('wrongPassword');
 
-    // Handle reCAPTCHA 
-    if (await page.$('iframe[src*="recaptcha"]')) {
-      await page.waitForFunction(() => {return document.querySelector('iframe[src*="recaptcha"]');});
-      const frames = page.frames();
-      const recaptchaFrame = frames.find(f => f.url().includes('recaptcha'));
-      if (recaptchaFrame) {await recaptchaFrame.getByRole('checkbox', { name: "I'm not a robot" }).click();}
-    }else{
-      // Handle reCAPTCHA – works in both Firefox and Chromium
-      // Wait for the reCAPTCHA iframe to appear in the DOM
-      await page.waitForSelector('iframe[src*="recaptcha"]', { timeout: 10000 });
-      // Create a frame locator for that iframe
-      const recaptchaFrame = page.frameLocator('iframe[src*="recaptcha"]');
-      // Click the "I'm not a robot" checkbox inside the iframe
-      await recaptchaFrame.getByRole('checkbox', { name: "I'm not a robot" }).click();
-    }
-
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await loginUser(page, testInfo, 'wrongPassword')
 
     await page.waitForTimeout(3000);
     await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
@@ -119,30 +93,8 @@ test.describe.serial('CRUD Actions and Navigation', () => {
   });
 
   test("logging in with correct credentials and verified email", async({page}, testInfo)=>{
-    const emailAddress = getEmailAddressForProject(testInfo);
-    await page.goto("https://audaf-testing.onrender.com")
-    await page.getByPlaceholder("Enter email").click();
-    await page.getByPlaceholder("Enter email").fill(emailAddress);
-    await page.getByPlaceholder("Password").click();
-    await page.getByPlaceholder("Password").fill('newSecurePassword123');
 
-    // Handle reCAPTCHA 
-    if (await page.$('iframe[src*="recaptcha"]')) {
-      await page.waitForFunction(() => {return document.querySelector('iframe[src*="recaptcha"]');});
-      const frames = page.frames();
-      const recaptchaFrame = frames.find(f => f.url().includes('recaptcha'));
-      if (recaptchaFrame) {await recaptchaFrame.getByRole('checkbox', { name: "I'm not a robot" }).click();}
-    }else{
-      // Handle reCAPTCHA – works in both Firefox and Chromium
-      // Wait for the reCAPTCHA iframe to appear in the DOM
-      await page.waitForSelector('iframe[src*="recaptcha"]', { timeout: 10000 });
-      // Create a frame locator for that iframe
-      const recaptchaFrame = page.frameLocator('iframe[src*="recaptcha"]');
-      // Click the "I'm not a robot" checkbox inside the iframe
-      await recaptchaFrame.getByRole('checkbox', { name: "I'm not a robot" }).click();
-    }
-
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await loginUser(page, testInfo, "newSecurePassword123")
 
     await page.waitForTimeout(3000);
     await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
@@ -155,6 +107,10 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.goto('https://audaf-testing.onrender.com/home');
     await page.getByRole('button', { name: 'Delete Account' }).click();
     await page.getByRole('textbox', { name: 'Enter your email' }).click();
+    // trying to delete with wrong email and failing
+    await page.getByRole('textbox', { name: 'Enter your email' }).fill("wrongemail@gmail.com");
+    await expect(page.getByRole('button', { name: 'Yes, Delete My Account' })).toBeDisabled();
+    // deleting with correct email
     await page.getByRole('textbox', { name: 'Enter your email' }).fill(emailAddress);
     await page.getByRole('button', { name: 'Yes, Delete My Account' }).click();
     await expect(page.getByText("Account deleted successfully! Redirecting to login page...")).toBeVisible({timeout: 10000});
@@ -162,6 +118,8 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.context().storageState({ path: getAuthFileByProjectName(testInfo.project.name) });
     await page.goto("https://audaf-testing.onrender.com/home");
     await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();
+    await loginUser(page, testInfo, "newSecurePassword123");
+    await expect(page.getByText("Invalid credentials")).toBeVisible();
   });
 
 });

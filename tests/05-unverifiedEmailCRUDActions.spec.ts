@@ -1,3 +1,4 @@
+// @ts-check
 import { test, expect } from '@playwright/test';
 import path from "path";
 import { existsSync, readFileSync } from 'fs';

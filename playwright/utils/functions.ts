@@ -12,6 +12,9 @@ export function getAuthFileByProjectName(projectName: string) {
 }
 
 export function getAuthFileTamperedByProjectName(projectName: string) {
+  if(projectName !== "chromium" || "firefox"){
+    projectName = "chromium"
+  }
   return path.join(authDir, `userTampered-${projectName.toLowerCase()}.json`);
 }
 
@@ -73,7 +76,7 @@ export const restoreAuthState = async function(page: any, filePath: string) {
   }
 }
 
-export const setUserTamperedToSameAsUser = async function(page: any, projectName: string) {
+export const setUserTamperedToSameAsUser = async function(projectName: string) {
   const userFilePath = getAuthFileByProjectName(projectName);
   const tamperedFilePath = getAuthFileTamperedByProjectName(projectName);
   // Implementation for setting tampered user state to same as regular user
@@ -82,6 +85,31 @@ export const setUserTamperedToSameAsUser = async function(page: any, projectName
     writeFileSync(tamperedFilePath, userState);
   }
 }
+
+const tampering = function(projectName: string, cookieName: string){
+  const toBeTamperedFilePath = getAuthFileTamperedByProjectName(projectName);
+
+  if (existsSync(toBeTamperedFilePath)) {
+    const raw = readFileSync(toBeTamperedFilePath, 'utf8');
+    const data = JSON.parse(raw);
+    
+    const tokenCookie = data.cookies.find((el: any) => el.name === cookieName);
+    
+    if (tokenCookie) {
+      tokenCookie.value = "wrongtoken";
+      writeFileSync(toBeTamperedFilePath, JSON.stringify(data, null, 2), 'utf8');
+    }
+  } else {
+    console.log('File does not exist at path:', toBeTamperedFilePath);
+  }
+}
+export const tamperWithJWTToken = async function(projectName: string) {
+  tampering(projectName, "token");
+};
+
+export const tamperWithCSRFToken = async function(projectName: string) {
+  tampering(projectName,"csrf-token-prod")
+};
 
 export const letCookiesExpire = async function(page: any) {
   const context = page.context();
