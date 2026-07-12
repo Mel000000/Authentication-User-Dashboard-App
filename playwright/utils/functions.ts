@@ -12,9 +12,6 @@ export function getAuthFileByProjectName(projectName: string) {
 }
 
 export function getAuthFileTamperedByProjectName(projectName: string) {
-  if(projectName !== "chromium" || "firefox"){
-    projectName = "chromium"
-  }
   return path.join(authDir, `userTampered-${projectName.toLowerCase()}.json`);
 }
 
