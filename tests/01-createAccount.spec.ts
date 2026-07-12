@@ -7,7 +7,7 @@ import { MailpitCodeFetcher,
         readEmailData,
         saveEmailAddressForProject,
         getAuthFileByProjectName,
-        getAuthFileUnverified} from "../playwright/helper/functions.ts"
+        getAuthFileUnverified} from "../playwright/utils/functions.ts"
 
 
 
@@ -79,6 +79,89 @@ test.describe.serial('create accounts and testing account creation with already 
     await expect(page.getByText('Email already in use')).toBeVisible({ timeout: 15000 });
   });
 
+  test("trying to create account with mismatched password and confirm password", async({page}, testInfo)=>{
+    const projectName = testInfo.project.name;
+    const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}@gamil.com`;
+
+    await page.goto('https://audaf-testing.onrender.com/signup');
+    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
+    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('mismatched1'); //<- mismatching
+    await page.getByRole('textbox', { name: 'Username' }).click();
+    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
+    await page.getByRole('textbox', { name: 'Email Address' }).click();
+    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
+    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
+    await page.getByRole('button', { name: '-- Select country --' }).click();
+    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await expect(page.getByRole('button', { name: 'Create Account' })).toBeDisabled();
+  });
+
+  test("trying to create account with invalid email format", async({page}, testInfo)=>{
+    const projectName = testInfo.project.name;
+    const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}gamil.com`; // <- invalid format
+
+    await page.goto('https://audaf-testing.onrender.com/signup');
+    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
+    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
+    await page.getByRole('textbox', { name: 'Username' }).click();
+    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
+    await page.getByRole('textbox', { name: 'Email Address' }).click();
+    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
+    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
+    await page.getByRole('button', { name: '-- Select country --' }).click();
+    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await expect(page.getByRole('button', { name: 'Create Account' })).toBeDisabled();
+  });
+
+  test("trying to create account with weak password", async({page}, testInfo)=>{
+    const projectName = testInfo.project.name;
+    const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}@gamil.com`;
+
+    await page.goto('https://audaf-testing.onrender.com/signup');
+    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('weak'); // <- weak password
+    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('weak');
+    await page.getByRole('textbox', { name: 'Username' }).click();
+    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
+    await page.getByRole('textbox', { name: 'Email Address' }).click();
+    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
+    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
+    await page.getByRole('button', { name: '-- Select country --' }).click();
+    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await expect(page.getByRole('button', { name: 'Create Account' })).toBeDisabled();
+  });
+
+  test("trying to create account with a profile picture in the wrong format", async({page}, testInfo)=>{
+    const projectName = testInfo.project.name;
+    const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}@gamil.com`; 
+
+    await page.goto('https://audaf-testing.onrender.com/signup');
+    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
+    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
+    await page.getByRole('textbox', { name: 'Username' }).click();
+    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
+    await page.getByRole('textbox', { name: 'Email Address' }).click();
+    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
+    await page.locator('input[type="file"]').setInputFiles('ghibli-gif.gif');
+    await page.getByRole('button', { name: '-- Select country --' }).click();
+    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await page.getByRole('button', { name: 'Create Account' }).click();
+    await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
+    const allMessages = await page.consoleMessages();
+    const uploadFailed = allMessages.some(msg => 
+      msg.text().includes("avatar upload failed")
+    );
+
+    expect(uploadFailed).toBe(true);
+  });
+
   // creates new user without verifying email and saves session/ cookies in userUnverified.json file for further testing
   test("create account and don't verify email", async({page}, testInfo)=>{
     const projectName = testInfo.project.name;
@@ -108,14 +191,6 @@ test.describe.serial('create accounts and testing account creation with already 
 
 // NEED TO CREATE FOLLOWING TESTS:
 /*
-mismatched password and confirm password
-invalid email format
-missing fields
-dublicate username
-weak password rejection
-size limit for pic uploads
-deleting account but enter the wrong email + verify deletion by trying to log in with deleted account
-invalid data when updating profile
 testing with expired verification code 10 min
 testing with exipred/missing reset token -> hitting /reset-password directlty without going through the forgot password flow
 testing 15 min tempEmail expiration for signup flow
