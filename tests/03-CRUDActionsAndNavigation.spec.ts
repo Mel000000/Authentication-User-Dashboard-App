@@ -1,9 +1,8 @@
+// @ts-check
 import { test, expect } from '@playwright/test';
 import {getAuthFileByProjectName,
         getEmailAddressForProject,
         restoreAuthState,
-        letCookiesExpire,
-        restoreExpiredCookies,
         MailpitCodeFetcher} from "../playwright/utils/functions.ts"
 import {loginUser} from "../playwright/helpers/recycle.ts"
 
@@ -37,15 +36,6 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.getByRole('button', { name: 'Submit Changes' }).click();
     await expect(page.getByText("Profile updated successfully!", { exact: true})).toBeVisible();
   })
-
-  test("let session expire by expiring cookies and trying to navigate home", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
-    await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).toBeVisible();
-    await letCookiesExpire(page);
-    await page.goto('https://audaf-testing.onrender.com/home');
-    await expect(page.getByText('Welcome Back!', { exact: true})).toBeVisible();
-    await restoreExpiredCookies(page, getAuthFileByProjectName(testInfo.project.name));
-  });
 
   test("logging out", async({page}, testInfo)=>{
     await page.goto('https://audaf-testing.onrender.com/home');
