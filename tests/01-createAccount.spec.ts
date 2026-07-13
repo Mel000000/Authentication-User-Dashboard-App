@@ -25,7 +25,7 @@ test.describe.serial('create accounts and testing account creation with already 
     await page.getByRole('button', { name: 'Create Account' }).click();
 
     // Wait for navigation to verification page
-    await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
+    await page.waitForURL("/verify-email", { timeout: 30000 });
     // trigger the email sender 
     await page.getByText('Send Code').click();
 
@@ -37,7 +37,7 @@ test.describe.serial('create accounts and testing account creation with already 
     await page.getByRole('button', { name: 'Complete Registration' }).click();
 
     await expect(page.getByText('Email verified!')).toBeVisible({ timeout: 15000 });
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!')).toBeVisible({ timeout: 15000 });
     
     // Save the authenticated state to a file for future tests
@@ -88,7 +88,7 @@ test.describe.serial('create accounts and testing account creation with already 
 
     await fillUpSignUpForm(page, emailAddress, "securepassword123", "securepassword123", "ghibli-gif.gif", "testusername2" )
     await page.getByRole('button', { name: 'Create Account' }).click();
-    await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
+    await page.waitForURL("/verify-email", { timeout: 30000 });
     const allMessages = await page.consoleMessages();
     const uploadFailed = allMessages.some(msg => msg.text().includes("avatar upload failed"));
     expect(uploadFailed).toBe(true);
@@ -103,7 +103,7 @@ test.describe.serial('create accounts and testing account creation with already 
     // Filling up Signup Forum
     await fillUpSignUpForm(page, unverifiedEmailAddress, "securepassword123", "securepassword123", "jellyfishWallpaper.jpg", "testuserunverified" )
     await page.getByRole('button', { name: 'Create Account' }).click();
-    await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
+    await page.waitForURL("/verify-email", { timeout: 30000 });
 
     const authFileUnverified = getAuthFileUnverified(projectName);
     await page.context().storageState({ path: authFileUnverified });

@@ -4,7 +4,7 @@ import {getEmailAddressForProject} from "../utils/functions.ts"
 
 export async function loginUser(page: Page, testInfo: any, password: string,){
     const emailAddress = getEmailAddressForProject(testInfo);
-    await page.goto("https://audaf-testing.onrender.com")
+    await page.goto("/")
     await page.getByPlaceholder("Enter email").click();
     await page.getByPlaceholder("Enter email").fill(emailAddress);
     await page.getByPlaceholder("Password").click();
@@ -26,7 +26,7 @@ export async function loginUser(page: Page, testInfo: any, password: string,){
 };
 
 export async function fillUpSignUpForm(page: Page, emailAddress: string, password: string, secondPassword: string, PicName: string, username: string){
-  await page.goto('https://audaf-testing.onrender.com/signup');
+  await page.goto('/signup');
   await page.getByRole('textbox', { name: 'Password', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
   await page.getByRole('textbox', { name: 'Confirm Password' }).click();

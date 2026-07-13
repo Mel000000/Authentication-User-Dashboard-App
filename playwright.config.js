@@ -11,6 +11,7 @@ export default defineConfig({
     ? [['list'], ['json', { outputFile: 'results.json' }]]
     : [['html']],
   use: {
+    baseURL:"https://audaf-testing.onrender.com",
     trace: 'on-first-retry',
   },
 

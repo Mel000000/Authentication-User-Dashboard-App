@@ -26,7 +26,7 @@ test.describe.serial('Unverified Email CRUD Actions', () => {
   });
 
   test('navigating home', async ({ page }) => {
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testuserunverified!', { exact: true})).not.toBeVisible();
   });
 
