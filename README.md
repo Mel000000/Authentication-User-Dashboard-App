@@ -31,6 +31,7 @@ A full‑stack authentication and user dashboard application built with **Node.j
 - [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 - [Authentication Flows](#authentication-flows)
+- [Testing](#testing)
 - [API Reference](#api-reference)
 - [License](#license)
 
@@ -69,9 +70,9 @@ This application is fully decoupled and distributed on **Render**:
 ---
 
 ## Why This Project Exists
-
+ 
 This project is a **portfolio centerpiece** showcasing full‑stack capabilities:
-
+ 
 | Area | What I Demonstrated |
 |------|---------------------|
 | **Backend** | Express REST API, JWT auth, bcrypt hashing, Brevo email, Zod validation, Multer file handling |
@@ -81,22 +82,21 @@ This project is a **portfolio centerpiece** showcasing full‑stack capabilities
 | **Integrations** | REST Countries API, Google reCAPTCHA, Brevo email API, Cloudinary |
 | **Database** | MongoDB schema design, Mongoose ODM, user data persistence |
 | **DevOps** | Decoupled cross-origin cloud deployment, CORS configuration, Redis session + rate-limit store |
-
+ 
 ---
-
+ 
 ## Usage Example
-
+ 
 1. **Sign up** – Enter your details, upload a profile picture (optional), and choose a country — the map auto‑zooms to your selection.
 2. **Verify your email** – A 6-digit code is sent to your inbox. Enter it to activate your account and get logged in immediately.
 3. **Log in** – Solve the reCAPTCHA, then receive a secure session via `httpOnly` cookie.
 4. **Dashboard** – View your complete profile including email, username, country, join date, and profile image.
 5. **Reset your password** – Request a 6‑digit verification code by email, verify it, then set a new password.
 6. **Update profile** – Change your username, country, or profile picture (upload new or delete existing).
-
 ---
-
+ 
 ## Architecture
-
+ 
 ```mermaid
 flowchart TB
     subgraph Client["🖥️ React Client (Render Static Site)"]
@@ -105,7 +105,7 @@ flowchart TB
         B["Axios HTTP Client + CSRF Interceptor"]
         A2["ProfileImageUploader Component<br/>• FileReader Preview<br/>• Hover Effects"]
     end
-
+ 
     subgraph Server["⚙️ Express Server (Render Web Service)"]
         direction TB
         C["🌐 API Routes<br/>• /api/user<br/>• /api/country<br/>• /api/codeRequest<br/>• /api/profile"]
@@ -117,23 +117,23 @@ flowchart TB
         F["📧 Email Service<br/>• Brevo API<br/>• 6-digit code generator"]
         
         G["🖼️ Media Handler<br/>• Multer MemoryStorage<br/>• Cloudinary Uploader"]
-
+ 
         H["🛡️ Security Layer<br/>• CSRF double-submit<br/>• Redis rate limiting<br/>• Helmet headers"]
     end
-
+ 
     subgraph Data["🗄️ Data Layer"]
         direction TB
         I[("MongoDB Atlas<br/>Users Collection")]
         J[("Redis<br/>Sessions + Rate limits")]
         K[("Cloudinary CDN<br/>Profile Images")]
     end
-
+ 
     subgraph External["🌐 External APIs"]
         L["Google reCAPTCHA"]
         M["REST Countries API"]
         N["Brevo Email API"]
     end
-
+ 
     Client -->|HTTP Requests with Credentials| Server
     Server -->|Read/Write| I
     Server -->|Sessions/Rate limits| J
@@ -141,15 +141,15 @@ flowchart TB
     Server -->|Verify token| L
     Server -->|Fetch countries| M
     Server -->|Send emails| N
-
+ 
     style Client fill:#6366F1,color:#fff,stroke:#333,stroke-width:1px
     style Server fill:#F6821F,color:#fff,stroke:#333,stroke-width:3px
     style Data fill:#2DBA4E,color:#fff,stroke:#333,stroke-width:1px
     style External fill:#F38020,color:#fff,stroke:#333,stroke-width:1px
 ```
-
+ 
 ## Features
-
+ 
 ### 🔐 Authentication & Security
 - **HttpOnly Cookie Sessions** – JWT stored exclusively in httpOnly cookies; never exposed to JavaScript.
 - **Double-Submit CSRF Protection** – Every mutating request requires a valid CSRF token. The Axios client auto-fetches and caches the token, and retries automatically on a 403.
@@ -158,28 +158,24 @@ flowchart TB
 - **Redis-Backed Rate Limiting** – Auth endpoints limited to 10 failed attempts per 15 minutes; email endpoints to 3 requests per hour. Counts only fail, not success.
 - **Server‑Side Validation** – All inputs validated with Zod schemas before hitting the database.
 - **Separate Reset JWT Secret** – Password reset tokens are signed with a dedicated `JWT_SECRET_RESET_PASSWORD`, isolated from the session secret.
-
 ### 👤 User Management
 - **Password Reset Flow** – Time‑limited 6‑digit codes, bcrypt-hashed, sent via Brevo email API.
 - **Interactive Dashboard** – Dynamic profile fetching with loading states and graceful error handling.
 - **Profile Image Upload** – Upload, preview (with FileReader), and delete profile pictures stored on Cloudinary CDN.
 - **Default Avatar Generation** – UI Avatars API fallback when no custom image is uploaded.
-
 ### 🗺️ Location & Maps
 - **Country Integration** – Dynamic country list from REST Countries API, including flags.
 - **Live Map Preview** – Leaflet map that auto-zooms to selected country coordinates.
 - **Async Coordinate Fetching** – Country selection triggers background API call to update map viewport.
-
 ### 🎨 UI/UX Highlights
 - **Polished Image Uploader** – Hover effects with SVG overlay, smooth transitions, and click-to-upload.
 - **Responsive Design** – Bootstrap-powered layouts for desktop and mobile.
 - **Loading States** – Spinners and disabled buttons during async operations.
 - **Toast Notifications** – Success and error feedback via react-toastify.
-
 ---
-
+ 
 ## Tech Stack
-
+ 
 | Layer | Technologies |
 |----------------|------------------------------------------------------------------------------|
 | **Frontend** | React 19, Vite 7, React Bootstrap, React Router 7, Axios, Leaflet, FileReader API |
@@ -189,13 +185,13 @@ flowchart TB
 | **Security** | Google reCAPTCHA v2, httpOnly cookies, CSRF double-submit, Redis rate limiting, Helmet |
 | **Session Store** | Redis (via connect-redis + ioredis) |
 | **APIs** | REST Countries API, Google reCAPTCHA API, Brevo API, Cloudinary API |
-
+ 
 ---
-
+ 
 ## Environment Variables
-
+ 
 ### Backend (`server/.env`)
-
+ 
 ```env
 MONGODB_URI=mongodb+srv://...
 JWT_SECRET=your_jwt_secret
@@ -212,7 +208,7 @@ BREVO_FROM_EMAIL=noreply@yourdomain.com
 PORT=3000
 NODE_ENV=development
 ```
-
+ 
 | Variable | Description |
 |----------|-------------|
 | `MONGODB_URI` | MongoDB Atlas connection string |
@@ -229,25 +225,25 @@ NODE_ENV=development
 | `BREVO_FROM_EMAIL` | Sender email address for outgoing emails |
 | `PORT` | Server port (defaults to 3000) |
 | `NODE_ENV` | Set to `production` to enable secure cookies and rate limiting |
-
+ 
 ### Frontend (`client/.env`)
-
+ 
 ```env
 VITE_API_URL=https://your-backend.onrender.com/api
 VITE_REACT_APP_RECAPTCHA_SITE_KEY=your_recaptcha_site_key
 VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
-
+ 
 | Variable | Description |
 |----------|-------------|
 | `VITE_API_URL` | Base URL of the backend API |
 | `VITE_REACT_APP_RECAPTCHA_SITE_KEY` | Google reCAPTCHA public site key |
 | `VITE_GOOGLE_MAPS_API_KEY` | Google Maps JavaScript API key |
-
+ 
 ---
-
+ 
 ## Project Structure
-
+ 
 ```text
 ├── client/                            # React frontend
 │   ├── src/
@@ -303,50 +299,78 @@ VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
 │   │   └── profileImage.js            # Cloudinary upload/delete
 │   └── index.js                       # Server entry point
 │
+├── playwright/
+│   ├── helpers/
+│   │   └── recycle.ts                 # Reusable flows: login, signup form fill
+│   └── utils/
+│       └── functions.ts               # Auth-state persistence, Mailpit email lookup helpers
+│
 ├── tests/
-│   └── 00-createAccount.spec.ts       # Playwright e2e test
+│   ├── 01-createAccount.spec.ts               # Signup, email verification, and input-validation edge cases
+│   ├── 02-authAndSecurity.spec.ts             # Session/cookie tampering, expired sessions, invalid CSRF
+│   ├── 03-CRUDActionsAndNavigation.spec.ts    # Profile edit, logout, login, password reset, account deletion
+│   └── 04-unverifiedEmailCRUDActions.spec.ts  # Access control for unverified accounts
+│
+├── playwright.config.js               # Cross-browser (Chromium + Firefox) parallel test config
 └── README.md
 ```
-
+ 
 ---
-
+ 
 ## Authentication Flows
-
+ 
 ### Signup & Email Verification
 1. User enters email, username, password, and selects a country. Optionally uploads a profile picture.
 2. On submit, the client fetches a CSRF token, then posts registration data to `/api/user/storeRegistrationData`. This creates an unverified placeholder user in MongoDB and stores a bcrypt-hashed 6-digit code with a 10-minute TTL.
 3. A verification code is sent to the user's email via Brevo.
 4. User enters the code on the verification screen. Server validates the bcrypt hash and, on success, flips `email_verified` to `true`, issues a session JWT via httpOnly cookie, and returns the user object. The user is immediately logged in.
 5. If a profile image was selected during signup, it is uploaded to Cloudinary via the temporary-user image endpoint.
-
 ### Login
 1. User submits email, password, and reCAPTCHA token.
 2. Server validates the reCAPTCHA with Google's API.
 3. Unverified accounts (`email_verified: false`) are rejected with a 403.
 4. Password compared against the bcrypt hash in MongoDB.
 5. On success, a JWT is signed and stored in an httpOnly, SameSite=None cookie. No token is stored in JavaScript-accessible storage.
-
 ### CSRF Protection
 All mutating requests (POST, PUT, DELETE) require a valid `x-csrf-token` header. The Axios client in `apiClient.js` caches the CSRF token for 4 minutes and refreshes it automatically. If a request returns 403, the interceptor forces a token refresh and retries the request once transparently.
-
+ 
 ### Password Reset
 1. User requests a reset with their email address.
 2. Server generates a 6-digit code, bcrypt-hashes it, stores it with a 10-minute TTL, and sends it via Brevo.
 3. User submits the code. Server validates the hash and issues a short-lived JWT signed with `JWT_SECRET_RESET_PASSWORD` (15-minute expiry).
 4. User sets a new password. Server verifies the reset token, bcrypt-hashes the new password, and saves it. The verification code is cleared.
-
 ---
-
+ 
+## Testing
+ 
+The app is covered by a **Playwright end-to-end suite** that runs against a live deployment rather than mocks, exercising the real signup → verify → login → dashboard → reset → delete lifecycle across **Chromium and Firefox** in parallel.
+ 
+| Suite | Coverage |
+|-------|----------|
+| `01-createAccount.spec.ts` | Full signup + email verification happy path, plus negative cases: duplicate email, mismatched passwords, invalid email format, weak password, wrong-format profile picture upload, unverified abandonment |
+| `02-authAndSecurity.spec.ts` | Requests with no cookies, a tampered JWT, an expired session, and an invalid CSRF token are all rejected as expected |
+| `03-CRUDActionsAndNavigation.spec.ts` | Authenticated navigation, profile editing, logout, login with bad credentials, password reset (valid + invalid codes), login with verified credentials, and account deletion |
+| `04-unverifiedEmailCRUDActions.spec.ts` | Confirms unverified accounts are correctly blocked from logging in and runs the clean-up script at the end to avoid cluttering the db|
+ 
+**Supporting infrastructure:**
+- **Real email verification** — tests send and read actual verification codes via a self-hosted [Mailpit](https://mailpit.axllent.org/) instance rather than stubbing the email step out.
+- **Auth-state persistence** (`playwright/utils/functions.ts`) — reusable helpers for saving/restoring per-browser auth state and looking up per-project test email addresses, so verified sessions can be reused across specs instead of re-registering every test.
+- **Reusable flows** (`playwright/helpers/recycle.ts`) — shared `loginUser` and `fillUpSignUpForm` functions, including reCAPTCHA handling, so each spec stays focused on what it's actually testing.
+**CI pipeline** (`.github/workflows/tests-automation.yml`): pushes to the `testing` branch trigger a GitHub Actions run that warms the Render instance, runs the full suite, and posts a formatted pass/fail summary (with a Mermaid pie chart) to the workflow run. On success, it automatically opens a PR merging `testing` into `main` — so `main` only ever receives changes that have passed the full E2E suite.
+ 
+---
+ 
 ## API Reference
-
+ 
 See [API.md](API.md) for full endpoint documentation including request/response formats, auth requirements, and error codes.
-
+ 
 ---
-
+ 
 ## License
-
+ 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
+ 
 ---
-
+ 
 Built by [Mel000000](https://github.com/Mel000000)
+ 
