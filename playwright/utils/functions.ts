@@ -11,6 +11,7 @@ export function getAuthFileByProjectName(projectName: string) {
   return path.join(authDir, `user-${projectName.toLowerCase()}.json`);
 }
 
+
 export function getAuthFileTamperedByProjectName(projectName: string) {
   return path.join(authDir, `userTampered-${projectName.toLowerCase()}.json`);
 }

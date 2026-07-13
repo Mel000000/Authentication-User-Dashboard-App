@@ -7,7 +7,8 @@ import { MailpitCodeFetcher,
         readEmailData,
         saveEmailAddressForProject,
         getAuthFileByProjectName,
-        getAuthFileUnverified} from "../playwright/utils/functions.ts"
+        getAuthFileUnverified} from "../playwright/utils/functions.ts";
+import {fillUpSignUpForm} from "../playwright/helpers/recycle.ts";
 
 
 
@@ -20,18 +21,7 @@ test.describe.serial('create accounts and testing account creation with already 
     saveEmailAddressForProject(projectName, emailAddress);
 
     // Filling up Signup Forum
-    await page.goto('https://audaf-testing.onrender.com/signup');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Username' }).click();
-    await page.getByRole('textbox', { name: 'Username' }).fill('testusername');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
-    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
-    await page.getByRole('button', { name: '-- Select country --' }).click();
-    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await fillUpSignUpForm(page, emailAddress, "securepassword123", "securepassword123", "jellyfishWallpaper.jpg", "testusername" )
     await page.getByRole('button', { name: 'Create Account' }).click();
 
     // Wait for navigation to verification page
@@ -62,19 +52,8 @@ test.describe.serial('create accounts and testing account creation with already 
     const projectName = testInfo.project.name;
     const emailData = readEmailData();
     const emailAddress = emailData[projectName.toLowerCase()] || `test-user-${projectName.toLowerCase()}@gamil.com`;
-
-    await page.goto('https://audaf-testing.onrender.com/signup');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Username' }).click();
-    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
-    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
-    await page.getByRole('button', { name: '-- Select country --' }).click();
-    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    
+    await fillUpSignUpForm(page, emailAddress, "securepassword123", "securepassword123", "jellyfishWallpaper.jpg", "testusername2" )
     await page.getByRole('button', { name: 'Create Account' }).click();
     await expect(page.getByText('Email already in use')).toBeVisible({ timeout: 15000 });
   });
@@ -83,18 +62,7 @@ test.describe.serial('create accounts and testing account creation with already 
     const projectName = testInfo.project.name;
     const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}@gamil.com`;
 
-    await page.goto('https://audaf-testing.onrender.com/signup');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('mismatched1'); //<- mismatching
-    await page.getByRole('textbox', { name: 'Username' }).click();
-    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
-    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
-    await page.getByRole('button', { name: '-- Select country --' }).click();
-    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await fillUpSignUpForm(page, emailAddress, "securepassword123", "mismatched1", "jellyfishWallpaper.jpg", "testusername2" )
     await expect(page.getByRole('button', { name: 'Create Account' })).toBeDisabled();
   });
 
@@ -102,18 +70,7 @@ test.describe.serial('create accounts and testing account creation with already 
     const projectName = testInfo.project.name;
     const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}gamil.com`; // <- invalid format
 
-    await page.goto('https://audaf-testing.onrender.com/signup');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Username' }).click();
-    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
-    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
-    await page.getByRole('button', { name: '-- Select country --' }).click();
-    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await fillUpSignUpForm(page, emailAddress, "securepassword123", "securepassword123", "jellyfishWallpaper.jpg", "testusername2" )
     await expect(page.getByRole('button', { name: 'Create Account' })).toBeDisabled();
   });
 
@@ -121,18 +78,7 @@ test.describe.serial('create accounts and testing account creation with already 
     const projectName = testInfo.project.name;
     const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}@gamil.com`;
 
-    await page.goto('https://audaf-testing.onrender.com/signup');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('weak'); // <- weak password
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('weak');
-    await page.getByRole('textbox', { name: 'Username' }).click();
-    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
-    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
-    await page.getByRole('button', { name: '-- Select country --' }).click();
-    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await fillUpSignUpForm(page, emailAddress, "weak", "weak", "jellyfishWallpaper.jpg", "testusername2" )
     await expect(page.getByRole('button', { name: 'Create Account' })).toBeDisabled();
   });
 
@@ -140,25 +86,11 @@ test.describe.serial('create accounts and testing account creation with already 
     const projectName = testInfo.project.name;
     const emailAddress = `test-user-${projectName.toLowerCase()}-${Date.now()}@gamil.com`; 
 
-    await page.goto('https://audaf-testing.onrender.com/signup');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Username' }).click();
-    await page.getByRole('textbox', { name: 'Username' }).fill('testusername2');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
-    await page.locator('input[type="file"]').setInputFiles('ghibli-gif.gif');
-    await page.getByRole('button', { name: '-- Select country --' }).click();
-    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await fillUpSignUpForm(page, emailAddress, "securepassword123", "securepassword123", "ghibli-gif.gif", "testusername2" )
     await page.getByRole('button', { name: 'Create Account' }).click();
     await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
     const allMessages = await page.consoleMessages();
-    const uploadFailed = allMessages.some(msg => 
-      msg.text().includes("avatar upload failed")
-    );
-
+    const uploadFailed = allMessages.some(msg => msg.text().includes("avatar upload failed"));
     expect(uploadFailed).toBe(true);
   });
 
@@ -169,18 +101,7 @@ test.describe.serial('create accounts and testing account creation with already 
     saveEmailAddressForProject(`${projectName}-unverified`, unverifiedEmailAddress);
 
     // Filling up Signup Forum
-    await page.goto('https://audaf-testing.onrender.com/signup');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('securepassword123');
-    await page.getByRole('textbox', { name: 'Username' }).click();
-    await page.getByRole('textbox', { name: 'Username' }).fill('testuserunverified');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill(unverifiedEmailAddress);
-    await page.locator('input[type="file"]').setInputFiles('jellyfishWallpaper.jpg');
-    await page.getByRole('button', { name: '-- Select country --' }).click();
-    await page.getByRole('button', { name: 'Albania flag Albania' }).click();
+    await fillUpSignUpForm(page, unverifiedEmailAddress, "securepassword123", "securepassword123", "jellyfishWallpaper.jpg", "testuserunverified" )
     await page.getByRole('button', { name: 'Create Account' }).click();
     await page.waitForURL("https://audaf-testing.onrender.com/verify-email", { timeout: 30000 });
 
