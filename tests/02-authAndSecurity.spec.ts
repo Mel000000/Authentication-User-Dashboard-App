@@ -18,38 +18,38 @@ test.describe('Authentication and Security Tests', () => {
   });
 
   test('session with no cookies should be rejected', async ({ page }, testInfo) => {
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
     await removeCookiesFromFile(page, getAuthFileTamperedByProjectName(testInfo.project.name));
-    await page.goto('https://audaf-testing.onrender.com/home');
-    await expect(page).toHaveURL('https://audaf-testing.onrender.com/');
+    await page.goto('/home');
+    await expect(page).toHaveURL('/');
     await expect(page.getByText('Welcome Back!', { exact: true})).toBeVisible();
     await setUserTamperedToSameAsUser(testInfo.project.name); // Reset the tampered state to match the regular user state for further tests
   });
 
   test("session with tampered JWT-token should be rejected", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
     await tamperWithJWTToken(testInfo.project.name)
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).not.toBeVisible();
     await setUserTamperedToSameAsUser(testInfo.project.name);
   })
 
   test("session with expired cookies should be rejected when navigating home", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
     await letCookiesExpire(page);
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Back!', { exact: true})).toBeVisible();
     await restoreExpiredCookies(page, getAuthFileByProjectName(testInfo.project.name));
   });
 
   test("session with invalid CSRF token should be rejected", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
     await tamperWithCSRFToken(testInfo.project.name)
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).not.toBeVisible();
     await setUserTamperedToSameAsUser(testInfo.project.name);
   })

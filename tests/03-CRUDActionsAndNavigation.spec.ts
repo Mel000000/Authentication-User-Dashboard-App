@@ -12,13 +12,13 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await restoreAuthState(page, authFile);
   });
 
-  test('navigating home', async ({ page }, testInfo) => {
-    await page.goto('https://audaf-testing.onrender.com/home');
+  test('navigating home', async ({ page }) => {
+    await page.goto('/home');
     await expect(page.getByText('Welcome Home, testusername!', { exact: true})).toBeVisible();
   });
 
-  test("editing profile", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
+  test("editing profile", async({page})=>{
+    await page.goto('/home');
     await page.getByRole('button', { name: 'Edit Profile' }).click();
     await page.getByRole('textbox').click();
     // trying to update profile with invalid username first
@@ -37,16 +37,15 @@ test.describe.serial('CRUD Actions and Navigation', () => {
   })
 
   test("logging out", async({page}, testInfo)=>{
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await page.getByRole('button', { name: 'Logout' }).click();
     await expect(page.getByText("Logged out successfully! Redirecting to login page...", { exact: true})).toBeVisible();
     await page.context().storageState({ path: getAuthFileByProjectName(testInfo.project.name) });
-    await page.goto("https://audaf-testing.onrender.com/home")
+    await page.goto("/home")
     await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();
   })
 
   test("logging in with wrong credentials", async({page}, testInfo)=>{
-
     await loginUser(page, testInfo, 'wrongPassword')
 
     await page.waitForTimeout(3000);
@@ -56,7 +55,7 @@ test.describe.serial('CRUD Actions and Navigation', () => {
   test("resetting password with correct and incorrect verification code", async({page}, testInfo)=>{
     const emailAddress = getEmailAddressForProject(testInfo);
     
-    await page.goto("https://audaf-testing.onrender.com")
+    await page.goto("/")
     await page.getByRole('link', { name: 'Forgot Password?' }).click();
     await page.getByRole('textbox', { name: 'Email Address' }).click();
     // testing with wrong email first to see if the system handles it correctly
@@ -75,7 +74,7 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await expect(page.getByText("Invalid code")).toBeVisible({ timeout: 10000 });
     await page.getByRole('textbox', { name: 'Verification Code' }).fill(code);
     await page.locator('div').filter({ hasText: /^Verify$/ }).click();
-    await page.waitForURL("https://audaf-testing.onrender.com/reset-password", { timeout: 30000 });
+    await page.waitForURL("/reset-password", { timeout: 30000 });
     await page.getByRole('textbox', { name: 'New Password' }).click();
     // testing with password without numberfirst to see if the system handles it correctly
     await page.getByRole('textbox', { name: 'New Password' }).fill('bad');
@@ -88,7 +87,7 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.getByRole('textbox', { name: 'Confirm Password' }).fill('newSecurePassword123');
     await page.getByRole('button', { name: 'Reset Password' }).click();
     await expect(page.getByText('Password reset successful! Redirecting to login page...')).toBeVisible({ timeout: 10000 });
-    await page.waitForURL("https://audaf-testing.onrender.com", { timeout: 30000 });
+    await page.waitForURL("/", { timeout: 30000 });
   });
 
   test("logging in with correct credentials and verified email", async({page}, testInfo)=>{
@@ -97,13 +96,13 @@ test.describe.serial('CRUD Actions and Navigation', () => {
 
     await page.waitForTimeout(3000);
     await expect(page.locator('form')).toBeVisible({ timeout: 10000 });
-    await page.waitForURL(/home|login/, { timeout: 10000 }).catch(() => {});
+    await page.waitForURL("/home", { timeout: 10000 }).catch(() => {});
     await page.context().storageState({ path: getAuthFileByProjectName(testInfo.project.name) });
   });
 
   test("deleting test account", async({page}, testInfo)=>{
     const emailAddress = getEmailAddressForProject(testInfo);
-    await page.goto('https://audaf-testing.onrender.com/home');
+    await page.goto('/home');
     await page.getByRole('button', { name: 'Delete Account' }).click();
     await page.getByRole('textbox', { name: 'Enter your email' }).click();
     // trying to delete with wrong email and failing
@@ -113,9 +112,9 @@ test.describe.serial('CRUD Actions and Navigation', () => {
     await page.getByRole('textbox', { name: 'Enter your email' }).fill(emailAddress);
     await page.getByRole('button', { name: 'Yes, Delete My Account' }).click();
     await expect(page.getByText("Account deleted successfully! Redirecting to login page...")).toBeVisible({timeout: 10000});
-    await page.waitForURL("https://audaf-testing.onrender.com");
+    await page.waitForURL("/");
     await page.context().storageState({ path: getAuthFileByProjectName(testInfo.project.name) });
-    await page.goto("https://audaf-testing.onrender.com/home");
+    await page.goto("/home");
     await expect(page.getByText('Welcome Home, newUsername!', { exact: true})).not.toBeVisible();
     await loginUser(page, testInfo, "newSecurePassword123");
     await expect(page.getByText("Invalid credentials")).toBeVisible();
