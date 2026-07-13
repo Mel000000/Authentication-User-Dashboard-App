@@ -23,4 +23,19 @@ export async function loginUser(page: Page, testInfo: any, password: string,){
     }
 
     await page.getByRole('button', { name: 'Sign In' }).click();
+};
+
+export async function fillUpSignUpForm(page: Page, emailAddress: string, password: string, secondPassword: string, PicName: string, username: string){
+  await page.goto('https://audaf-testing.onrender.com/signup');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
+  await page.getByRole('textbox', { name: 'Confirm Password' }).click();
+  await page.getByRole('textbox', { name: 'Confirm Password' }).fill(secondPassword);
+  await page.getByRole('textbox', { name: 'Username' }).click();
+  await page.getByRole('textbox', { name: 'Username' }).fill(username);
+  await page.getByRole('textbox', { name: 'Email Address' }).click();
+  await page.getByRole('textbox', { name: 'Email Address' }).fill(emailAddress);
+  await page.locator('input[type="file"]').setInputFiles(PicName);
+  await page.getByRole('button', { name: '-- Select country --' }).click();
+  await page.getByRole('button', { name: 'Albania flag Albania' }).click();
 }

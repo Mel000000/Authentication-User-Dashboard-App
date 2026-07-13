@@ -6,7 +6,6 @@ import {getAuthFileByProjectName,
         MailpitCodeFetcher} from "../playwright/utils/functions.ts"
 import {loginUser} from "../playwright/helpers/recycle.ts"
 
-
 test.describe.serial('CRUD Actions and Navigation', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     const authFile = getAuthFileByProjectName(testInfo.project.name);
