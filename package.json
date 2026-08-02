@@ -37,5 +37,23 @@
     "mailpit-api": "^2.1.0",
     "nodemon": "^3.1.14"
   },
-  "scripts": {}
+  "scripts": {},
+  "name": "authentication-user-dashboard-app",
+  "version": "1.0.0",
+  "description": "⭐ A production‑style full‑stack authentication system demonstrating secure user workflows, media uploads, and real‑world backend architecture.",
+  "main": "playwright.config.js",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mel000000/Authentication-User-Dashboard-App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mel000000/Authentication-User-Dashboard-App/issues"
+  },
+  "homepage": "https://github.com/Mel000000/Authentication-User-Dashboard-App#readme"
 }

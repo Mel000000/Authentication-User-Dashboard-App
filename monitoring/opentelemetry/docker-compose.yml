@@ -1,0 +1,10 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    ports:
+      - "4318:4318"   # For HTTP OTLP
+      - "4317:4317"   # For gRPC OTLP
+    volumes:
+      - ./config.yml:/etc/otelcol-contrib/config.yml
+      - ./.data:/etc/otelcol-contrib/.data
+      - /var/lib/docker/containers:/var/lib/docker/containers
