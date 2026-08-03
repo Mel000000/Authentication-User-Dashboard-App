@@ -31,6 +31,7 @@ A full‑stack authentication and user dashboard application built with **Node.j
 - [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 - [Authentication Flows](#authentication-flows)
+- [Observability](#observability)
 - [Testing](#testing)
 - [API Reference](#api-reference)
 - [License](#license)
@@ -183,6 +184,8 @@ flowchart TB
 | **Email** | Brevo API |
 | **Media** | Cloudinary CDN (upload, storage, auto-optimization) |
 | **Security** | Google reCAPTCHA v2, httpOnly cookies, CSRF double-submit, Redis rate limiting, Helmet |
+| **Observability** | OpenTelemetry Node.js SDK (OTLP HTTP Exporter, Auto-instrumentation) |
+| **Testing** | Playwright |
 | **Session Store** | Redis (via connect-redis + ioredis) |
 | **APIs** | REST Countries API, Google reCAPTCHA API, Brevo API, Cloudinary API |
  
@@ -340,7 +343,46 @@ All mutating requests (POST, PUT, DELETE) require a valid `x-csrf-token` header.
 3. User submits the code. Server validates the hash and issues a short-lived JWT signed with `JWT_SECRET_RESET_PASSWORD` (15-minute expiry).
 4. User sets a new password. Server verifies the reset token, bcrypt-hashes the new password, and saves it. The verification code is cleared.
 ---
- 
+
+## Observability
+The backend integrates an **OpenTelemetry (OTEL)** SDK layer that automatically captures distributed traces, application metrics, and structured logs without invasive code changes.
+
+```text
+   ┌──────────────────────────────────────────────┐
+   │ Express Backend (OpenTelemetry Node.js SDK)  │
+   └──────────────────────┬───────────────────────┘
+                          │ OTLP / HTTP (4318)
+                          ▼
+    ┌───────────────────────────────────────────┐
+    │ OpenTelemetry Collector (Contrib Engine)  │
+    └───────┬──────────────┬──────────────┬─────┘
+            │              │              │
+Prometheus  │         OTLP │         OTLP │
+  (8889)    ▼              ▼              ▼
+       ┌──────────┐   ┌──────────┐   ┌──────────┐
+       │Prometheus│   │  Tempo   │   │   Loki   │
+       └────┬─────┘   └────┬─────┘   └────┬─────┘
+            │              │              │
+            └──────────────┼──────────────┘
+                           ▼
+                   ┌──────────────┐
+                   │   Grafana    │
+                   └──────────────┘
+```
+#### Key Capabilities
+* **Auto-Instrumentation:** Automatic zero-code tracing for Node.js standard modules (HTTP/HTTPS, Express, MongoDB/Mongoose, Redis, etc.). File system (`fs`) tracing is explicitly disabled to eliminate noise.
+* **Unified OTLP Exporting:** Signals (traces, metrics, and logs) are exported via OTLP/HTTP to an OpenTelemetry Collector pipeline every 15 seconds.
+* **Semantic Resource Attributes:** Telemetry payload is automatically tagged with `service.name`, `service.version`, and `deployment.environment`.
+* **Graceful Shutdown:** Intercepts `SIGTERM` and `SIGINT` signals to flush buffered telemetry items before process exit.
+
+#### Environment Configuration
+Configure where the app routes telemetry data by setting:
+
+```env
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_SERVICE_NAME=authentication-user-dashboard-app
+```
+---
 ## Testing
  
 The app is covered by a **Playwright end-to-end suite** that runs against a live deployment rather than mocks, exercising the real signup → verify → login → dashboard → reset → delete lifecycle across **Chromium and Firefox** in parallel.
