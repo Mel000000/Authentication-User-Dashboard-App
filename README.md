@@ -346,7 +346,7 @@ All mutating requests (POST, PUT, DELETE) require a valid `x-csrf-token` header.
 
 ## Observability
 The backend integrates an **OpenTelemetry (OTEL)** SDK layer that automatically captures distributed traces, application metrics, and structured logs without invasive code changes.
-
+The Observability Backend can be found [here](https://github.com/Mel000000/observability-platform).
 ```text
    ┌──────────────────────────────────────────────┐
    │ Express Backend (OpenTelemetry Node.js SDK)  │
